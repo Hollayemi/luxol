@@ -1,68 +1,75 @@
-// Shared site chrome data for the Header and Footer.
-// Keeping this in one file means nav links, categories and footer columns
-// only need to be updated in a single place.
+export type NavItem = { label: string; href: string };
 
-export const SITE = {
-  name: "Luxol Market",
-  phone: "+234-901-234-5678",
-  email: "hello@luxolmarket.com",
-  address: ["24 Oyemekun Road, Akure, Ondo State,", "Nigeria"],
+export const siteConfig = {
+  name: "Luxol Supermarket",
+  // Put your logo file in /public and update this path if the name differs.
+  logo: "/logo-png.png",
+  phone: "+234 704 390 9799",
+  address: "20 Akure Ilesha Rd, Beside AP filling station, Akure, Ondo State, Nigeria",
+
+  promo: {
+    text: "Sign up and GET 10% OFF for your first order.",
+    linkLabel: "Sign up now",
+    href: "/register",
+  },
+
+  // Replace "#" with the real profile links.
+  socials: [
+    { label: "WhatsApp", href: "https://wa.me/2347043909799", icon: "whatsapp" },
+    { label: "Facebook", href: "#", icon: "facebook" },
+    { label: "Instagram", href: "#", icon: "instagram" },
+    { label: "LinkedIn", href: "#", icon: "linkedin" },
+    { label: "Email", href: "mailto:hello@luxol.com", icon: "mail" },
+  ] as const,
+
+  nav: [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/shop" },
+    { label: "Subscription", href: "/subscription" },
+    { label: "Meat Box", href: "/meat-box" },
+    { label: "My Freezer Planner", href: "/freezer-planner" },
+  ] satisfies NavItem[],
+
+  categories: [
+    { label: "All Categories", slug: "all" },
+    { label: "Meat and Protein", slug: "meat-protein" },
+    { label: "Fish & Sea Food", slug: "fish-seafood" },
+    { label: "Grains and Staples", slug: "grains-staples" },
+    { label: "Vegetables and Produce", slug: "vegetables-produce" },
+    { label: "Bakery", slug: "bakery" },
+    { label: "Groceries", slug: "groceries" },
+    { label: "Drinks", slug: "drinks" },
+    { label: "Essentials", slug: "essentials" },
+  ],
+
+  footerColumns: [
+    {
+      title: "Shop",
+      links: [
+        { label: "All Products", href: "/shop" },
+        { label: "Fish & Seafood", href: "/shop?category=fish-seafood" },
+        { label: "Sausages & Processed", href: "/shop?category=sausages-processed" },
+        { label: "Vegetables & Produce", href: "/shop?category=vegetables-produce" },
+        { label: "Offers & More...", href: "/offers" },
+      ],
+    },
+    {
+      title: "Services",
+      links: [
+        { label: "Meat Box", href: "/meat-box" },
+        { label: "Freezer Planner", href: "/freezer-planner" },
+        { label: "Delivery", href: "/delivery" },
+        { label: "Membership", href: "/membership" },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        { label: "About Luxol", href: "/about" },
+        { label: "Terms & Conditions", href: "/terms" },
+        { label: "Returns & Refunds", href: "/returns" },
+        { label: "Contact Us", href: "/contact" },
+      ],
+    },
+  ] satisfies { title: string; links: NavItem[] }[],
 };
-
-export const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "Shop", href: "/shop" },
-  { label: "Subscription", href: "/subscription" },
-  { label: "Meat Box", href: "/meat-box" },
-  { label: "My Freezer Planner", href: "/freezer-planner" },
-] as const;
-
-export const CATEGORIES = [
-  { label: "Meat and Protein", href: "/shop/meat-and-protein" },
-  { label: "Fish & Sea Food", href: "/shop/fish-and-sea-food" },
-  { label: "Grains and Staples", href: "/shop/grains-and-staples" },
-  { label: "Vegetables and Produce", href: "/shop/vegetables-and-produce" },
-  { label: "Bakery", href: "/shop/bakery" },
-  { label: "Groceries", href: "/shop/groceries" },
-  { label: "Drinks", href: "/shop/drinks" },
-  { label: "Essentials", href: "/shop/essentials" },
-] as const;
-
-export const SOCIAL_LINKS = [
-  { label: "WhatsApp", icon: "whatsapp", href: "https://wa.me/2349012345678" },
-  { label: "Facebook", icon: "facebook", href: "https://facebook.com" },
-  { label: "Instagram", icon: "instagram", href: "https://instagram.com" },
-  { label: "LinkedIn", icon: "linkedin", href: "https://linkedin.com" },
-  { label: "Email", icon: "mail", href: "mailto:hello@luxolmarket.com" },
-] as const;
-
-export const FOOTER_COLUMNS = [
-  {
-    title: "Shop",
-    links: [
-      { label: "All Products", href: "/shop" },
-      { label: "Fish & Seafood", href: "/shop/fish-and-sea-food" },
-      { label: "Sausages & Processed", href: "/shop/sausages-and-processed" },
-      { label: "Vegetables & Produce", href: "/shop/vegetables-and-produce" },
-      { label: "Offers & More...", href: "/offers" },
-    ],
-  },
-  {
-    title: "Services",
-    links: [
-      { label: "Meat Box", href: "/meat-box" },
-      { label: "Freezer Planner", href: "/freezer-planner" },
-      { label: "Delivery", href: "/delivery" },
-      { label: "Membership", href: "/membership" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About Luxol", href: "/about" },
-      { label: "Terms & Conditions", href: "/terms" },
-      { label: "Returns & Refunds", href: "/returns-refunds" },
-      { label: "Contact Us", href: "/contact" },
-    ],
-  },
-] as const;

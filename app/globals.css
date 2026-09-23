@@ -3,12 +3,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-
-  --brand-green: #065500;
-  --brand-green-dark: #21671C;
-  --brand-green-soft: #21681c;
-  --brand-orange: #F89803;
-  --brand-orange-dark: #db8600;
 }
 
 @theme inline {
@@ -17,22 +11,13 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-brand-green: var(--brand-green);
-  --color-brand-green-dark: var(--brand-green-dark);
-  --color-brand-green-soft: var(--brand-green-soft);
-  --color-brand-orange: var(--brand-orange);
-  --color-brand-orange-dark: var(--brand-orange-dark);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Luxol brand colors (estimated from the design; swap in exact hex values) */
+  --color-luxol-green: #0b5a0e;
+  --color-luxol-orange: #f79a0b;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
