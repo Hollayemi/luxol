@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { formatNaira, type Product } from "./product";
+import { formatNaira, type Product } from "../../utils/product";
 
 export default function ProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);

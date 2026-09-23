@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Product } from "./product";
-import ProductCard from "./ProductCard";
+import { Product } from "../../utils/product";
+import ProductCard from "../ui/ProductCard";
 
 type ProductSectionProps = {
   id: string;

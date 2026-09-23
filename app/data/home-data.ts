@@ -1,5 +1,5 @@
 
-import { Product } from "../components/Sections/product";
+import { Product } from "../utils/product";
 
 export const dealProducts: Product[] = [
   {

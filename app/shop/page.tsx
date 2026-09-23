@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Product } from "../components/Sections/product";
+import { Product } from "../utils/product";
 import { shopMoreProducts } from "../data/home-data";
 import { siteConfig } from "../config/site";
 import { ChevronDownIcon } from "../components/ui/icons";
-import ProductCard from "../components/Sections/ProductCard";
-import ProductRow from "../components/Sections/ProductRow";
+import ProductCard from "../components/ui/ProductCard";
+import ProductRow from "../components/ui/ProductRow";
 import { Categories } from "../components/Sections";
 
 export const metadata: Metadata = {
@@ -335,11 +335,10 @@ export default async function ShopPage({
                     <Link
                       href={buildHref(state, { sort: s.value, page: 1 })}
                       aria-current={s.value === sort ? "true" : undefined}
-                      className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                        s.value === sort
-                          ? "font-medium text-luxol-green"
-                          : "text-neutral-700"
-                      }`}
+                      className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${s.value === sort
+                        ? "font-medium text-luxol-green"
+                        : "text-neutral-700"
+                        }`}
                     >
                       {s.label}
                     </Link>
@@ -356,11 +355,10 @@ export default async function ShopPage({
               href={buildHref(state, { view: "list" })}
               aria-label="Larger cards"
               aria-current={view === "list" ? "true" : undefined}
-              className={`rounded p-1 transition-colors ${
-                view === "list"
-                  ? "text-neutral-900"
-                  : "text-neutral-400 hover:text-neutral-700"
-              }`}
+              className={`rounded p-1 transition-colors ${view === "list"
+                ? "text-neutral-900"
+                : "text-neutral-400 hover:text-neutral-700"
+                }`}
             >
               <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
                 <line x1="4" y1="7" x2="20" y2="7" />
@@ -373,11 +371,10 @@ export default async function ShopPage({
               href={buildHref(state, { view: "grid" })}
               aria-label="Compact grid"
               aria-current={view === "grid" ? "true" : undefined}
-              className={`rounded p-1 transition-colors ${
-                view === "grid"
-                  ? "text-neutral-900"
-                  : "text-neutral-400 hover:text-neutral-700"
-              }`}
+              className={`rounded p-1 transition-colors ${view === "grid"
+                ? "text-neutral-900"
+                : "text-neutral-400 hover:text-neutral-700"
+                }`}
             >
               <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
                 <rect x="4" y="4" width="6" height="6" rx="1.5" />
