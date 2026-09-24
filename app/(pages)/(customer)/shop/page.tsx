@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Product } from "../utils/product";
-import { shopMoreProducts } from "../data/home-data";
-import { siteConfig } from "../config/site";
-import { ChevronDownIcon } from "../components/ui/icons";
-import ProductCard from "../components/ui/ProductCard";
-import ProductRow from "../components/ui/ProductRow";
-import { Categories } from "../components/Sections";
+import { Product } from "../../../utils/product";
+import { shopMoreProducts } from "../../../data/home-data";
+import { siteConfig } from "../../../config/site";
+import { ChevronDownIcon } from "../../../components/ui/icons";
+import ProductCard from "../../../components/ui/ProductCard";
+import ProductRow from "../../../components/ui/ProductRow";
+import { Categories } from "../../../components/Sections";
 
 export const metadata: Metadata = {
   title: "Shop | Luxol Supermarket",
 };
 
-/* ------------------------------------------------------------------ */
-/* Placeholder data layer                                              */
-/* Replace CATALOG + getProducts() with your API / database call.      */
-/* ------------------------------------------------------------------ */
 
 type CatalogItem = Product & { category: string };
 

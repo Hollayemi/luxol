@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ServicePage from "../components/Sections/ServicePage";
+import ServicePage from "@/app/components/Sections/ServicePage";
 
 export const metadata: Metadata = {
   title: "Build Your Meat Box | Luxol Supermarket",

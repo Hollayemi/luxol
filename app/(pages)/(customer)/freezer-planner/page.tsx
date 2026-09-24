@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ServicePage from "../components/Sections/ServicePage";
+import ServicePage from "@/app/components/Sections/ServicePage";
 
 export const metadata: Metadata = {
   title: "Plan Your Freezer | Luxol Supermarket",
@@ -22,7 +22,7 @@ export default function FreezerPlannerPage() {
           "Know how much to stock for the month",
           "Set reminders when it's time to restock",
         ],
-        // Placeholder route: point this at your freezer planner flow
+        
         cta: { label: "Plan Your Freezer", href: "/freezer-planner/setup" },
         image: {
           src: "/images/full-basket.png",

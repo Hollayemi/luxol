@@ -8,9 +8,9 @@ import {
 } from "@/app/components/ui/icons";
 import Pagination from "@/app/components/ui/Pagination";
 import { queryProducts, SORTS, type SortValue } from "@/app/lib/catalog";
-import { siteConfig } from "../config/site";
-import ProductCard from "../components/ui/ProductCard";
-import ProductRow from "../components/ui/ProductRow";
+import { siteConfig } from "@/app/config/site";
+import ProductCard from "@/app/components/ui/ProductCard";
+import ProductRow from "@/app/components/ui/ProductRow";
 
 export const metadata: Metadata = {
   title: "Search | Luxol Supermarket",
