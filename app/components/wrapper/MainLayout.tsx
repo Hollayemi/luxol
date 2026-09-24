@@ -4,15 +4,12 @@ import Header from "./Header";
 
 type MainLayoutProps = FooterProps & {
   children: ReactNode;
-  /** Passed to the header cart badge. */
-  cartCount?: number;
   /** Extra classes for the <main> element (e.g. a page background). */
   className?: string;
 };
 
 export default function MainLayout({
   children,
-  cartCount,
   className = "",
   showWhyShopWithUs,
   showNewsletter,
@@ -27,7 +24,7 @@ export default function MainLayout({
         Skip to content
       </a>
 
-      <Header cartCount={cartCount} />
+      <Header />
 
       <main id="main-content" className={`flex-1 mt-44 ${className}`}>
         {children}

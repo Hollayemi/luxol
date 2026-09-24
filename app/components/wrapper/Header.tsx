@@ -2,8 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import AccountButton from "@/app/components/ui/AccountButton";
+import useOpenAuth from "@/app/components/auth/useOpenAuth";
+import useOpenCart from "@/app/components/cart/useOpenCart";
+import { useCartCount } from "@/redux/hooks";
 import {
   BagIcon,
   BoltIcon,
@@ -13,7 +18,7 @@ import {
   SearchIcon,
   socialIcons,
 } from "../ui/icons";
-import { siteConfig } from "../../config/site";
+import { siteConfig } from "@/app/config/site";
 
 const container = "mx-auto w-full max-w-[1240px] px-4 sm:px-6";
 
@@ -32,7 +37,7 @@ function SearchBar({ className = "" }: { className?: string }) {
     if (category !== "all") params.set("category", category);
     if (query.trim()) params.set("q", query.trim());
     const qs = params.toString();
-    router.push(qs ? `/shop?${qs}` : "/shop");
+    router.push(qs ? `/search?${qs}` : "/search");
   }
 
   return (
@@ -125,13 +130,12 @@ function NavLinks({
 /* Header                                                              */
 /* ------------------------------------------------------------------ */
 
-type HeaderProps = {
-  /** Number of items in the cart. Hooks up to your cart state later. */
-  cartCount?: number;
-};
-
-export default function Header({ cartCount = 0 }: HeaderProps) {
+export default function Header() {
   const pathname = usePathname();
+  const cartCount = useCartCount();
+  const openCart = useOpenCart();
+  const openAuth = useOpenAuth();
+  const { status } = useSession();
   const [open, setOpen] = useState(false);
   const closeMenu = () => setOpen(false);
 
@@ -158,7 +162,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   );
 
   return (
-    <header className="w-full fixed top-0 z-50 bg-luxol-green/95 backdrop-blur-sm">
+    <header className="w-full fixed top-0 z-50">
       {/* Top promo bar */}
       <div className="bg-luxol-orange text-xs text-black sm:text-[13px]">
         <div
@@ -173,12 +177,15 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
           <p className="text-center">
             {siteConfig.promo.text}{" "}
-            <Link
-              href={siteConfig.promo.href}
-              className="font-medium text-luxol-green underline underline-offset-2"
-            >
-              {siteConfig.promo.linkLabel}
-            </Link>
+            {status !== "authenticated" && (
+              <button
+                type="button"
+                onClick={() => openAuth("register")}
+                className="font-medium text-luxol-green underline underline-offset-2"
+              >
+                {siteConfig.promo.linkLabel}
+              </button>
+            )}
           </p>
 
           <ul className="hidden items-center gap-3.5 justify-self-end text-luxol-green md:flex">
@@ -225,8 +232,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <SearchBar className="hidden lg:flex" />
 
             <div className="flex items-center gap-2.5 lg:justify-self-end">
-              <Link
-                href="/cart"
+              <button
+                type="button"
+                onClick={openCart}
+                aria-haspopup="dialog"
                 aria-label={
                   cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"
                 }
@@ -238,14 +247,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
-              </Link>
+              </button>
 
-              <Link
-                href="/login"
-                className="hidden h-11 items-center rounded-lg border border-luxol-orange px-4 text-xs font-medium text-luxol-orange transition hover:bg-luxol-orange hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:inline-flex"
-              >
-                Register / Log In
-              </Link>
+              <div className="hidden sm:block">
+                <AccountButton />
+              </div>
 
               <button
                 type="button"
@@ -286,13 +292,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               <NavLinks pathname={pathname} vertical onNavigate={closeMenu} />
               <div className="flex items-center justify-between border-t border-white/15 pt-4">
                 {flashSales}
-                <Link
-                  href="/login"
-                  onClick={closeMenu}
-                  className="inline-flex h-10 items-center rounded-lg border border-luxol-orange px-4 text-xs font-medium text-luxol-orange"
-                >
-                  Register / Log In
-                </Link>
+                <AccountButton size="sm" onAction={closeMenu} />
               </div>
             </div>
           )}
