@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { EASE, fadeUp, stagger, viewportOnce } from "../ui/motion";
 
 type Heading = { lead: string; accent: string };
 
@@ -46,30 +50,41 @@ function BenefitIcon() {
   );
 }
 
-/**
- * Shared layout for the Meat Box and Freezer Planner pages:
- * banner photo, intro with benefits and a call to action, and a
- * four step "how it works" section on green.
- */
+const itemVariant = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
+};
+
 export default function ServicePage({
   bannerImage,
   intro,
   howItWorks,
 }: ServicePageProps) {
   const imageFirst = intro.imageSide === "left";
+  const reduce = useReducedMotion();
+  const v = reduce
+    ? { hidden: { opacity: 1 }, show: { opacity: 1 } }
+    : itemVariant;
 
   return (
     <div>
-      {/* Banner */}
+      {/* Banner: slow zoom-in on mount */}
       <div className="relative h-[200px] w-full overflow-hidden bg-neutral-200 sm:h-[260px] lg:h-[320px]">
-        <Image
-          src={bannerImage}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        <motion.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.1, ease: EASE }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={bannerImage}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        </motion.div>
       </div>
 
       {/* Intro */}
@@ -78,44 +93,73 @@ export default function ServicePage({
         className={`${container} py-14 sm:py-20 lg:py-24`}
       >
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
-          <div className={imageFirst ? "lg:order-2" : ""}>
-            <h1
+          {/* Text column */}
+          <motion.div
+            variants={stagger(0.12)}
+            initial="hidden"
+            whileInView="show"
+            viewport={viewportOnce}
+            className={imageFirst ? "lg:order-2" : ""}
+          >
+            <motion.h1
+              variants={v}
               id="service-heading"
               className="text-3xl font-bold leading-tight text-neutral-800 sm:text-4xl"
             >
               {intro.heading.lead}{" "}
               <span className="text-luxol-orange">{intro.heading.accent}</span>
-            </h1>
+            </motion.h1>
 
-            <p className="mt-6 max-w-[440px] text-sm leading-relaxed text-neutral-500 sm:text-[15px]">
+            <motion.p
+              variants={v}
+              className="mt-6 max-w-[440px] text-sm leading-relaxed text-neutral-500 sm:text-[15px]"
+            >
               {intro.description}
-            </p>
+            </motion.p>
 
-            <h2 className="mt-9 text-base font-semibold text-neutral-900">
+            <motion.h2
+              variants={v}
+              className="mt-9 text-base font-semibold text-neutral-900"
+            >
               {intro.benefitsTitle}
-            </h2>
+            </motion.h2>
 
-            <ul className="mt-5 flex flex-col gap-4">
+            <motion.ul
+              variants={stagger(0.08)}
+              className="mt-5 flex flex-col gap-4"
+            >
               {intro.benefits.map((benefit) => (
-                <li
+                <motion.li
                   key={benefit}
+                  variants={v}
                   className="flex items-center gap-4 text-sm text-neutral-600"
                 >
                   <BenefitIcon />
                   {benefit}
-                </li>
+                </motion.li>
               ))}
-            </ul>
+            </motion.ul>
 
-            <Link
-              href={intro.cta.href}
-              className="mt-10 inline-flex h-12 items-center gap-2 rounded-lg bg-luxol-green px-6 text-sm font-medium text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
-            >
-              {intro.cta.label} <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+            <motion.div variants={v}>
+              <Link
+                href={intro.cta.href}
+                className="mt-10 inline-flex h-12 items-center gap-2 rounded-lg bg-luxol-green px-6 text-sm font-medium text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
+              >
+                {intro.cta.label} <span aria-hidden="true">→</span>
+              </Link>
+            </motion.div>
+          </motion.div>
 
-          <div className={imageFirst ? "lg:order-1" : ""}>
+          {/* Image column */}
+          <motion.div
+            initial={
+              reduce ? { opacity: 0 } : { opacity: 0, x: imageFirst ? -40 : 40 }
+            }
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={viewportOnce}
+            transition={{ duration: 0.8, ease: EASE }}
+            className={imageFirst ? "lg:order-1" : ""}
+          >
             {intro.image.style === "card" ? (
               <div className="relative mx-auto aspect-[4/5] w-full max-w-[390px] overflow-hidden rounded-[32px] bg-neutral-100">
                 <Image
@@ -137,7 +181,7 @@ export default function ServicePage({
                 />
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -148,29 +192,42 @@ export default function ServicePage({
         className="bg-luxol-green py-16 text-white sm:py-24"
       >
         <div className={container}>
-          <p className="text-sm uppercase tracking-wide text-white/70">
-            How it works
-          </p>
-
-          <h2
-            id="how-it-works-heading"
-            className="mt-3 text-3xl font-bold leading-tight sm:text-4xl"
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={viewportOnce}
           >
-            <span className="block">{howItWorks.heading.lead}</span>
-            <span className="block text-luxol-orange">
-              {howItWorks.heading.accent}
-            </span>
-          </h2>
+            <p className="text-sm uppercase tracking-wide text-white/70">
+              How it works
+            </p>
 
-          <p className="mt-6 max-w-[560px] text-sm leading-relaxed text-white/90">
-            {howItWorks.description}
-          </p>
+            <h2
+              id="how-it-works-heading"
+              className="mt-3 text-3xl font-bold leading-tight sm:text-4xl"
+            >
+              <span className="block">{howItWorks.heading.lead}</span>
+              <span className="block text-luxol-orange">
+                {howItWorks.heading.accent}
+              </span>
+            </h2>
 
-          <ol className="mt-14 grid gap-12 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4 lg:gap-10">
+            <p className="mt-6 max-w-[560px] text-sm leading-relaxed text-white/90">
+              {howItWorks.description}
+            </p>
+          </motion.div>
+
+          <motion.ol
+            variants={stagger(0.14)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
+            className="mt-14 grid gap-12 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4 lg:gap-10"
+          >
             {howItWorks.steps.map((step, i) => {
               const last = i === howItWorks.steps.length - 1;
               return (
-                <li key={step.title}>
+                <motion.li key={step.title} variants={v}>
                   <div className="flex items-center">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-luxol-orange text-sm font-bold text-white">
                       {i + 1}
@@ -192,10 +249,10 @@ export default function ServicePage({
                   <p className="mt-5 max-w-[230px] text-sm leading-relaxed text-white/80">
                     {step.detail}
                   </p>
-                </li>
+                </motion.li>
               );
             })}
-          </ol>
+          </motion.ol>
         </div>
       </section>
     </div>

@@ -121,6 +121,27 @@ export const PriceIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const HeartIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+  </Svg>
+);
+
+export const GemIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6 3h12l4 6-10 12L2 9z" />
+    <path d="M11 3 8 9l4 12 4-12-3-6" />
+    <path d="M2 9h20" />
+  </Svg>
+);
+
+export const UserIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
+  </Svg>
+);
+
 export const socialIcons = {
   whatsapp: WhatsAppIcon,
   facebook: FacebookIcon,

@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { EASE, fadeUp, stagger, viewportOnce } from "../ui/motion";
 
 type Feature = {
   eyebrow: string;
@@ -50,13 +54,34 @@ const features: Feature[] = [
   },
 ];
 
+const cardVariant = {
+  hidden: { opacity: 0, y: 26, scale: 0.98 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.6, ease: EASE },
+  },
+};
+
 export default function MainFeatures() {
+  const reduce = useReducedMotion();
+  const v = reduce
+    ? { hidden: { opacity: 1 }, show: { opacity: 1 } }
+    : cardVariant;
+
   return (
     <section
       aria-labelledby="features-heading"
       className="mx-auto w-full max-w-[1240px] px-4 pb-14 pt-8 sm:px-6 sm:pb-16 sm:pt-12"
     >
-      <div className="text-center">
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="show"
+        viewport={viewportOnce}
+        className="text-center"
+      >
         <p className="text-xs font-medium uppercase tracking-wide text-neutral-600 sm:text-sm">
           Our main features
         </p>
@@ -73,15 +98,27 @@ export default function MainFeatures() {
           Build, plan and subscribe to services designed to make buying quality
           food simpler and more convenient.
         </p>
-      </div>
+      </motion.div>
 
-      <ul className="mt-10 grid gap-5 lg:grid-cols-3">
+      <motion.ul
+        variants={stagger(0.1)}
+        initial="hidden"
+        whileInView="show"
+        viewport={viewportOnce}
+        className="mt-10 grid gap-5 lg:grid-cols-3"
+      >
         {features.map((f) => (
-          <li key={f.title}>
-            <article
+          <motion.li key={f.title} variants={v}>
+            <motion.article
+              whileHover={reduce ? undefined : { y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
               className={`relative isolate flex h-full min-h-[220px] overflow-hidden rounded-2xl p-6 sm:p-7 ${f.cardClass}`}
             >
-              <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[48%]">
+              <motion.div
+                whileHover={reduce ? undefined : { scale: 1.04 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[48%]"
+              >
                 <Image
                   src={f.image}
                   alt=""
@@ -89,7 +126,7 @@ export default function MainFeatures() {
                   sizes="(min-width: 1024px) 200px, 45vw"
                   className="object-contain object-right-bottom"
                 />
-              </div>
+              </motion.div>
 
               <div className="flex max-w-[88%] flex-col items-start">
                 <p className="text-xs text-neutral-600 sm:text-sm">
@@ -113,10 +150,10 @@ export default function MainFeatures() {
                   {f.cta} <span aria-hidden="true">→</span>
                 </Link>
               </div>
-            </article>
-          </li>
+            </motion.article>
+          </motion.li>
         ))}
-      </ul>
+      </motion.ul>
     </section>
   );
 }

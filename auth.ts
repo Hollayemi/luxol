@@ -1,10 +1,13 @@
-import NextAuth from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { loginWithCredentials, loginWithGoogle } from "@/lib/auth/backend";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
+  pages: {
+    error: '/error'
+  },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID ?? "",
@@ -59,4 +62,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-});
+};

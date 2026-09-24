@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDownIcon } from "./icons";
+import { GemIcon, HeartIcon, UserIcon } from "./icons";
 import useOpenAuth from "../auth/useOpenAuth";
 
 const base =
@@ -40,18 +41,31 @@ export default function AccountButton({
     return (
       <details className="group relative">
         <summary
-          className={`${base} ${height} cursor-pointer list-none gap-2 hover:bg-luxol-orange hover:text-black [&::-webkit-details-marker]:hidden`}
+          className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-white transition hover:text-luxol-orange [&::-webkit-details-marker]:hidden"
+          aria-label={`Account, ${firstName}`}
         >
-          Hi, {firstName}
-          <ChevronDownIcon className="size-3.5 transition-transform group-open:rotate-180" />
+          <UserIcon className="h-5 w-5" />
         </summary>
 
         <div className="absolute right-0 top-full z-30 mt-2 w-56 rounded-lg border border-neutral-200 bg-white p-2 text-neutral-900 shadow-lg">
-          {session.user?.email && (
-            <p className="truncate px-3 py-2 text-xs text-neutral-500">
-              {session.user.email}
-            </p>
-          )}
+          <p className="truncate px-3 py-2 text-xs text-neutral-500">
+            Hi, {firstName}
+            {session.user?.email ? ` · ${session.user.email}` : ""}
+          </p>
+          <Link
+            href="/account"
+            onClick={onAction}
+            className="block rounded-md px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            My Profile
+          </Link>
+          <Link
+            href="/orders"
+            onClick={onAction}
+            className="block rounded-md px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            My Orders
+          </Link>
           <button
             type="button"
             onClick={() => {
@@ -79,5 +93,30 @@ export default function AccountButton({
     >
       Register / Log In
     </button>
+  );
+}
+
+/** Plain icon link used for Wishlist / Loyalty in the header when signed in. */
+export function HeaderIconLink({
+  href,
+  label,
+  icon,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  icon: "heart" | "gem";
+  onClick?: () => void;
+}) {
+  const Icon = icon === "heart" ? HeartIcon : GemIcon;
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-white transition hover:text-luxol-orange"
+    >
+      <Icon className="h-5 w-5" />
+    </Link>
   );
 }
