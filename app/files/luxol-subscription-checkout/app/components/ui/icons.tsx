@@ -142,44 +142,6 @@ export const UserIcon = (p: IconProps) => (
   </Svg>
 );
 
-export const CheckCircleIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="8 12.5 11 15.5 16 9" />
-  </Svg>
-);
-
-export const AlertCircleIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12.5" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
-  </Svg>
-);
-
-export const AlertTriangleIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-  </Svg>
-);
-
-export const InfoIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="16" x2="12" y2="11.5" />
-    <line x1="12" y1="8" x2="12.01" y2="8" />
-  </Svg>
-);
-
-export const LockIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <rect x="4" y="11" width="16" height="10" rx="2" />
-    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-  </Svg>
-);
-
 export const CopyIcon = (p: IconProps) => (
   <Svg {...p}>
     <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -187,6 +149,12 @@ export const CopyIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const CheckCircleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <polyline points="8 12.5 11 15.5 16 9" />
+  </Svg>
+);
 
 export const XCircleIcon = (p: IconProps) => (
   <Svg {...p}>
@@ -211,7 +179,6 @@ export const ProgressDotsIcon = (p: IconProps) => (
     <circle cx="9" cy="17" r="1.4" />
   </svg>
 );
-
 
 export const StarIcon = ({
   filled,
@@ -252,6 +219,7 @@ export const TruckIcon = (p: IconProps) => (
   </Svg>
 );
 
+/** Circular swirl used for the membership flexibility bullets (pause/adjust/resume). */
 export const FlexIcon = (p: IconProps) => (
   <Svg strokeWidth={1.6} {...p}>
     <path d="M12 4a8 8 0 1 1-6.93 4" />
@@ -287,7 +255,7 @@ export const ChevronRightIcon = (p: IconProps) => (
   </Svg>
 );
 
-export const InfoIcon2 = (p: IconProps) => (
+export const InfoIcon = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="12" cy="12" r="9" />
     <line x1="12" y1="11" x2="12" y2="16.5" />
@@ -301,7 +269,6 @@ export const CameraIcon = (p: IconProps) => (
     <circle cx="12" cy="13" r="4" />
   </Svg>
 );
-
 
 export const ChickenIcon = (p: IconProps) => (
   <Svg {...p}>
@@ -340,7 +307,6 @@ export const MixedMeatIcon = (p: IconProps) => (
     <circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" />
   </Svg>
 );
-
 
 export const socialIcons = {
   whatsapp: WhatsAppIcon,

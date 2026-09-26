@@ -12,10 +12,11 @@ import {
 } from "@/app/components/ui/icons";
 import { formatNaira } from "@/app/utils/product";
 import { getErrorMessage } from "@/redux/config/errors";
-import { useCart } from "@/redux/hooks";
+import { useAppSelector, useCart } from "@/redux/hooks";
 import {
   useGetDeliveryMethodsQuery,
   usePlaceOrderMutation,
+  useSyncCartMutation,
   useValidateCartMutation,
   useValidatePromoMutation,
 } from "@/redux/slices/cartApi";
@@ -156,8 +157,10 @@ type Errors = { address?: string; phone?: string; method?: string };
 function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
   const cart = useCart();
   const { closeDialog } = useDialog();
+  const isAuthenticated = useAppSelector((s) => s.session.status === "authenticated");
   const [placeOrder] = usePlaceOrderMutation();
   const [validateCart] = useValidateCartMutation();
+  const [syncCart] = useSyncCartMutation();
 
   const { data: deliveryMethodsData } = useGetDeliveryMethodsQuery();
   const deliveryMethods = deliveryMethodsData?.data ?? DELIVERY_METHODS;
@@ -192,6 +195,19 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
         quantity: i.quantity,
         variant: i.variant,
       }));
+
+      // Signed-in customers get their cart saved to the account before
+      // checkout (so it's there if they switch devices, and for abandoned-
+      // cart recovery); best-effort, never blocks checkout.
+      if (isAuthenticated) {
+        syncCart({
+          items,
+          address: cart.address.trim(),
+          phone: cart.phone.trim(),
+          deliveryMethod: cart.deliveryMethod,
+          promoCode: cart.promo?.code,
+        }).catch(() => {});
+      }
 
       // Re-check stock and current prices right before checkout — the
       // person may have had this cart open a while.

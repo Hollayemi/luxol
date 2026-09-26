@@ -13,6 +13,13 @@ export const API_ROUTES = {
     verifyInvite: "/admin/invitations/verify",
     acceptInvite: "/admin/invitations/accept",
   },
+  /** Public storefront catalog (home, shop, search, product detail pages). */
+  catalog: {
+    categories: "/catalog/categories",
+    products: "/catalog/products",
+    product: (slug: string) => `/catalog/products/${slug}`,
+    related: (slug: string) => `/catalog/products/${slug}/related`,
+  },
   inventory: {
     create: "/admin/inventory",
     stats: "/admin/inventory/stats",

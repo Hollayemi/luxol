@@ -37,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
           className="absolute inset-0"
         >
           <Image
-            src={product.image}
+            src={product.images[0]}
             alt=""
             fill
             sizes="(min-width: 1024px) 190px, (min-width: 640px) 30vw, 46vw"
@@ -83,7 +83,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
           <span className="text-base font-bold text-neutral-900">
-            {formatNaira(product.price)}
+            {formatNaira(product.unitPrice)}
           </span>
           {product.oldPrice ? (
             <del className="text-xs text-neutral-400">

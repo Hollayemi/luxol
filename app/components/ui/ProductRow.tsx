@@ -36,7 +36,7 @@ export default function ProductRow({ product }: { product: Product }) {
                 className="relative block size-24 shrink-0 sm:size-[140px]"
             >
                 <Image
-                    src={product.image}
+                    src={product.images[0]}
                     alt=""
                     fill
                     sizes="140px"
@@ -58,7 +58,7 @@ export default function ProductRow({ product }: { product: Product }) {
 
                 <p className="mt-2 flex flex-wrap items-baseline gap-x-3">
                     <span className="text-2xl font-bold text-neutral-800 sm:text-[28px]">
-                        {formatNaira(product.price)}
+                        {formatNaira(product.unitPrice)}
                     </span>
                     {product.oldPrice ? (
                         <del className="text-sm text-neutral-400">

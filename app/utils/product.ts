@@ -3,13 +3,13 @@ export type Product = {
   slug: string;
   name: string;
   qty: number;
-  price: number;
+  unitPrice: number;
   /** Original price, shown struck through when the product is discounted. */
   oldPrice?: number;
   /** Shown in the green badge on the product image, e.g. 15 -> "15% OFF". */
   discountPercent?: number;
   /** Path under /public, e.g. /products/okro-500g.webp */
-  image: string;
+  images: string[];
 };
 
 /** 1840 -> "₦1,840", 1462.5 -> "₦1,462.50" */

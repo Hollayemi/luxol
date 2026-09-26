@@ -1,14 +1,15 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Provider } from "react-redux";
 import { useAppDispatch, useAppStore } from "./hooks";
 import baseApi from "./slices/baseApi";
+import { cartApi } from "./slices/cartApi";
 import { hydrateCart, type PersistedCart } from "./slices/cartSlice";
 import { sessionChanged } from "./slices/sessionSlice";
 import { makeStore, type AppStore } from "./store";
-import type { CartItem } from "./types";
+import type { CartItem, PlaceOrderItem } from "./types";
 
 const CART_STORAGE_KEY = "luxol:cart:v2";
 
@@ -110,14 +111,39 @@ function CartPersistence() {
 function SessionSync() {
   const { data, status } = useSession();
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   const accessToken = data?.accessToken ?? null;
+  const wasAuthenticated = useRef(false);
 
   useEffect(() => {
     dispatch(sessionChanged({ status, accessToken }));
 
-    // Signed out: drop anything cached from the previous user
-    if (status === "unauthenticated") dispatch(baseApi.util.resetApiState());
-  }, [dispatch, status, accessToken]);
+    if (status === "unauthenticated") {
+      // Signed out: drop anything cached from the previous user
+      dispatch(baseApi.util.resetApiState());
+      wasAuthenticated.current = false;
+      return;
+    }
+
+    // Just signed in (credentials, Google or a fresh registration all land
+    // here): fold whatever was in the guest cart into the account's saved
+    // cart. Best-effort — the local cart already has everything it needs
+    // to keep working even if this call fails.
+    if (status === "authenticated" && !wasAuthenticated.current) {
+      wasAuthenticated.current = true;
+
+      const { cart } = store.getState();
+      if (cart.items.length > 0) {
+        const items: PlaceOrderItem[] = cart.items.map((i) => ({
+          productId: i.id,
+          quantity: i.quantity,
+          variant: i.variant,
+        }));
+
+        dispatch(cartApi.endpoints.mergeCart.initiate({ items })).catch(() => {});
+      }
+    }
+  }, [dispatch, status, accessToken, store]);
 
   return null;
 }

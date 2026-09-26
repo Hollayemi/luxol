@@ -12,6 +12,9 @@ type ProductSectionProps = {
   viewAllHref: string;
   viewAllLabel?: string;
   products: Product[];
+  isLoading?: boolean;
+  /** Shown when the request finished but returned no products. */
+  emptyMessage?: string;
 };
 
 const cardVariant = {
@@ -25,6 +28,8 @@ export default function ProductSection({
   viewAllHref,
   viewAllLabel = "View all →",
   products,
+  isLoading = false,
+  emptyMessage = "No products to show right now.",
 }: ProductSectionProps) {
   const reduce = useReducedMotion();
   const v = reduce ? { hidden: { opacity: 1 }, show: { opacity: 1 } } : cardVariant;
@@ -55,19 +60,33 @@ export default function ProductSection({
         </Link>
       </motion.div>
 
-      <motion.div
-        variants={stagger(0.06)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.15 }}
-        className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-5"
-      >
-        {products.map((product) => (
-          <motion.div key={product.id} variants={v as any}>
-            <ProductCard product={product} />
-          </motion.div>
-        ))}
-      </motion.div>
+      {isLoading ? (
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="aspect-[11/10] rounded-xl bg-neutral-200" />
+              <div className="mt-2.5 h-4 w-3/4 rounded bg-neutral-200" />
+              <div className="mt-2 h-4 w-1/2 rounded bg-neutral-200" />
+            </div>
+          ))}
+        </div>
+      ) : products.length === 0 ? (
+        <p className="mt-6 text-sm text-neutral-500">{emptyMessage}</p>
+      ) : (
+        <motion.div
+          variants={stagger(0.06)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-5"
+        >
+          {products.map((product) => (
+            <motion.div key={product.id} variants={v as any}>
+              <ProductCard product={product} />
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
     </section>
   );
 }

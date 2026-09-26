@@ -84,7 +84,7 @@ export default function Hero() {
               Start Shopping
             </Link>
             <Link
-              href="/categories"
+              href="/search"
               className="inline-flex h-11 items-center rounded-lg bg-luxol-orange px-6 text-sm font-medium text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-orange"
             >
               Browse categories
