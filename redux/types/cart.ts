@@ -50,3 +50,63 @@ export type OrderResponse = {
   /** Shown to the customer, e.g. "LX-10482" */
   orderNumber: string;
 };
+
+/* ------------------------------------------------------------------ */
+/* Server-side cart (sync across devices, and for a signed-in user's    */
+/* abandoned-cart recovery). Line items reuse PlaceOrderItem's shape —  */
+/* the server always re-derives name/price/image from its own catalog. */
+/* ------------------------------------------------------------------ */
+
+export type ServerCart = {
+  items: PlaceOrderItem[];
+  address: string;
+  phone: string;
+  deliveryMethod: string;
+  promo: PromoInfo | null;
+  updatedAt: string;
+};
+
+/** PUT /cart — replaces the account's saved cart with the client's. */
+export type SyncCartRequest = {
+  items: PlaceOrderItem[];
+  address?: string;
+  phone?: string;
+  deliveryMethod?: string;
+  promoCode?: string;
+};
+
+/** POST /cart/merge — called right after login to fold a guest cart in. */
+export type MergeCartRequest = {
+  items: PlaceOrderItem[];
+};
+
+/* ------------------------------------------------------------------ */
+/* Pre-checkout validation — client prices/stock can be stale by the    */
+/* time the person actually checks out.                                */
+/* ------------------------------------------------------------------ */
+
+export type ValidateCartRequest = {
+  items: PlaceOrderItem[];
+};
+
+export type CartIssueCode =
+  | "out_of_stock"
+  | "price_changed"
+  | "quantity_reduced"
+  | "removed";
+
+export type CartItemIssue = {
+  productId: string;
+  variant?: string;
+  code: CartIssueCode;
+  /** Present for "price_changed": the item's current unit price. */
+  newPrice?: number;
+  /** Present for "quantity_reduced": the max quantity still available. */
+  maxQuantity?: number;
+  message: string;
+};
+
+export type ValidateCartResponse = {
+  valid: boolean;
+  issues: CartItemIssue[];
+};

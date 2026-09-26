@@ -2,6 +2,8 @@ export type User = {
   id: number | string;
   name: string;
   email: string;
+  /** "customer", or a staff role such as "operations_manager" */
+  role?: string;
 };
 
 export type LoginRequest = {

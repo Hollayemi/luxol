@@ -11,15 +11,17 @@ import {
   DeliveryIcon,
 } from "@/app/components/ui/icons";
 import { formatNaira } from "@/app/utils/product";
-import { DELIVERY_METHODS } from "@/app/lib/checkout";
 import { getErrorMessage } from "@/redux/config/errors";
 import { useCart } from "@/redux/hooks";
 import {
+  useGetDeliveryMethodsQuery,
   usePlaceOrderMutation,
+  useValidateCartMutation,
   useValidatePromoMutation,
 } from "@/redux/slices/cartApi";
 import { MAX_QUANTITY } from "@/redux/slices/cartSlice";
-import type { CartItem } from "@/redux/types";
+import { type CartItem } from "@/redux/types";
+import { DELIVERY_METHODS } from "@/redux/types/checkout";
 
 const fieldClass =
   "h-[52px] w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-luxol-green focus:outline-none focus:ring-2 focus:ring-luxol-green/30";
@@ -155,12 +157,16 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
   const cart = useCart();
   const { closeDialog } = useDialog();
   const [placeOrder] = usePlaceOrderMutation();
+  const [validateCart] = useValidateCartMutation();
+
+  const { data: deliveryMethodsData } = useGetDeliveryMethodsQuery();
+  const deliveryMethods = deliveryMethodsData?.data ?? DELIVERY_METHODS;
 
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const method = DELIVERY_METHODS.find((m) => m.id === cart.deliveryMethod);
+  const method = deliveryMethods.find((m) => m.id === cart.deliveryMethod);
   const percentOff = cart.promo?.percentOff ?? 0;
   const discount = Math.round((cart.itemsTotal * percentOff) / 100);
   const deliveryFee = method?.fee ?? 0;
@@ -181,12 +187,26 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
     setSubmitting(true);
     try {
       // The server prices the order, so only ids and quantities are sent
+      const items = cart.items.map((i: CartItem) => ({
+        productId: i.id,
+        quantity: i.quantity,
+        variant: i.variant,
+      }));
+
+      // Re-check stock and current prices right before checkout — the
+      // person may have had this cart open a while.
+      const validation = await validateCart({ items }).unwrap();
+      if (!validation.data.valid) {
+        setSubmitError(
+          validation.data.issues.map((issue) => issue.message).join(" ") ||
+            "Some items in your cart changed. Please review your cart and try again.",
+        );
+        setSubmitting(false);
+        return;
+      }
+
       const response = await placeOrder({
-        items: cart.items.map((i: any) => ({
-          productId: i.id,
-          quantity: i.quantity,
-          variant: i.variant,
-        })),
+        items,
         address: cart.address.trim(),
         phone: cart.phone.trim(),
         deliveryMethod: cart.deliveryMethod,
@@ -210,7 +230,7 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
       <div className="flex-1 overflow-y-auto px-6 pb-8">
         {/* Items */}
         <ul className="pt-2">
-          {cart.items.map((item: any) => (
+          {cart.items.map((item: CartItem) => (
             <CartRow key={item.key} item={item} />
           ))}
         </ul>
@@ -270,7 +290,7 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
                   }`}
               >
                 <option value="">Select delivery method</option>
-                {DELIVERY_METHODS.map((m) => (
+                {deliveryMethods.map((m) => (
                   <option key={m.id} value={m.id} className="text-neutral-900">
                     {m.label}
                   </option>

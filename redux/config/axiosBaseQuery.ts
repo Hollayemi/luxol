@@ -6,7 +6,8 @@ import type { ApiError, ApiSuccess } from "../types";
 export const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 15_000,
-  headers: { "Content-Type": "application/json" },
+  // No default Content-Type — axios sets it per request.
+  // JSON → application/json. FormData → multipart/form-data; boundary=...
 });
 
 export type AxiosBaseQueryArgs = {
@@ -14,7 +15,7 @@ export type AxiosBaseQueryArgs = {
   method?: AxiosRequestConfig["method"];
   data?: AxiosRequestConfig["data"];
   params?: AxiosRequestConfig["params"];
-  headers?: Record<string, string>;
+  headers?: Record<string, string | undefined>;
 };
 
 const axiosBaseQuery = (): BaseQueryFn<AxiosBaseQueryArgs, unknown, ApiError> =>
@@ -39,7 +40,6 @@ const axiosBaseQuery = (): BaseQueryFn<AxiosBaseQueryArgs, unknown, ApiError> =>
       const body: unknown = response.data;
 
       if (isApiFailure(body)) return { error: toApiError(body) };
-
       if (isApiSuccess(body)) return { data: body };
 
       const fallback: ApiSuccess<unknown> = {

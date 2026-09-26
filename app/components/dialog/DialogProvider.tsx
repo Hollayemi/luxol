@@ -16,7 +16,7 @@ import {
 /* ------------------------------------------------------------------ */
 
 export type DialogSide = "right" | "left" | "center";
-export type DialogWidth = "sm" | "md" | "lg";
+export type DialogWidth = "sm" | "md" | "lg" | "xl" | "2xl";
 
 export type DialogOptions = {
   /** Accessible name announced by screen readers. */
@@ -80,9 +80,27 @@ const PANEL_SHAPE: Record<DialogSide, string> = {
 };
 
 const PANEL_WIDTH: Record<DialogSide, Record<DialogWidth, string>> = {
-  right: { sm: "sm:w-[380px]", md: "sm:w-[420px]", lg: "sm:w-[520px]" },
-  left: { sm: "sm:w-[380px]", md: "sm:w-[420px]", lg: "sm:w-[520px]" },
-  center: { sm: "max-w-sm", md: "max-w-md", lg: "max-w-lg" },
+  right: {
+    sm: "sm:w-[380px]",
+    md: "sm:w-[420px]",
+    lg: "sm:w-[520px]",
+    xl: "sm:w-[620px]",
+    "2xl": "sm:w-[720px]",
+  },
+  left: {
+    sm: "sm:w-[380px]",
+    md: "sm:w-[420px]",
+    lg: "sm:w-[520px]",
+    xl: "sm:w-[620px]",
+    "2xl": "sm:w-[720px]",
+  },
+  center: {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-[760px]",
+    "2xl": "max-w-[1180px]",
+  },
 };
 
 /* ------------------------------------------------------------------ */

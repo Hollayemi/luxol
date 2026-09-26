@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import { useEffect, type ReactNode } from "react";
 import { DialogProvider } from "@/app/components/dialog/DialogProvider";
+import NotificationHost from "@/app/components/notifications/NotificationHost";
 import { useAppDispatch } from "@/redux/hooks";
 import ReduxProvider from "@/redux/provider";
 import { addItem } from "@/redux/slices/cartSlice";
@@ -47,6 +48,8 @@ function CartEvents() {
  *   SessionProvider  next-auth session (useSession)
  *   ReduxProvider    store; reads the session to get the API token
  *   DialogProvider   dialogs render CartDrawer/AuthDialog, which use Redux + the session
+ *
+ * <NotificationHost /> renders whatever notify.success()/error()/... sends (app/lib/notify.ts).
  */
 export default function AppProviders({ children }: { children: ReactNode }) {
   return (
@@ -55,6 +58,7 @@ export default function AppProviders({ children }: { children: ReactNode }) {
         <DialogProvider>
           {children}
           <CartEvents />
+          <NotificationHost />
         </DialogProvider>
       </ReduxProvider>
     </SessionProvider>

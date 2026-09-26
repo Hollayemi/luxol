@@ -142,6 +142,167 @@ export const UserIcon = (p: IconProps) => (
   </Svg>
 );
 
+export const CheckCircleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="8 12.5 11 15.5 16 9" />
+  </Svg>
+);
+
+export const AlertCircleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12.5" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </Svg>
+);
+
+export const AlertTriangleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </Svg>
+);
+
+export const InfoIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="11.5" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </Svg>
+);
+
+export const LockIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </Svg>
+);
+
+export const CopyIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="9" y="9" width="13" height="13" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </Svg>
+);
+
+
+export const XCircleIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <line x1="9" y1="9" x2="15" y2="15" />
+    <line x1="15" y1="9" x2="9" y2="15" />
+  </Svg>
+);
+
+/** Small four-dot cluster used for the "In Progress" order status. */
+export const ProgressDotsIcon = (p: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+    {...p}
+  >
+    <circle cx="6" cy="8" r="2" />
+    <circle cx="14" cy="6" r="1.4" />
+    <circle cx="18" cy="13" r="2" />
+    <circle cx="9" cy="17" r="1.4" />
+  </svg>
+);
+
+
+export const StarIcon = ({
+  filled,
+  ...p
+}: IconProps & { filled?: boolean }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"}
+    stroke="currentColor"
+    strokeWidth={1.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+    {...p}
+  >
+    <polygon points="12 2.5 15.09 8.99 22.18 10.02 17.09 15.02 18.29 22.13 12 18.77 5.71 22.13 6.91 15.02 1.82 10.02 8.91 8.99 12 2.5" />
+  </svg>
+);
+
+export const EmptyBasketIcon = (p: IconProps) => (
+  <Svg strokeWidth={1.5} {...p}>
+    <path d="M4 9h16l-1.2 9.6a2 2 0 0 1-2 1.9H7.2a2 2 0 0 1-2-1.9L4 9z" />
+    <path d="M8 9V7a4 4 0 0 1 8 0v2" />
+    <path d="M9 13v3" />
+    <path d="M15 13v3" />
+    <path d="M2.5 9h1.8" />
+    <path d="M19.7 9h1.8" />
+  </Svg>
+);
+
+export const TruckIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="1" y="3" width="15" height="13" />
+    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+    <circle cx="5.5" cy="18.5" r="2.5" />
+    <circle cx="18.5" cy="18.5" r="2.5" />
+  </Svg>
+);
+
+export const FlexIcon = (p: IconProps) => (
+  <Svg strokeWidth={1.6} {...p}>
+    <path d="M12 4a8 8 0 1 1-6.93 4" />
+    <polyline points="4 3.5 5 8 9.5 7.2" />
+  </Svg>
+);
+
+export const EditIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+  </Svg>
+);
+
+export const EyeIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </Svg>
+);
+
+export const EyeOffIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-7-11-7a20.5 20.5 0 0 1 4.22-5.36M9.9 4.24A10.6 10.6 0 0 1 12 4c7 0 11 7 11 7a20.6 20.6 0 0 1-2.68 3.87" />
+    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+    <path d="M1 1l22 22" />
+  </Svg>
+);
+
+export const ChevronRightIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <polyline points="9 18 15 12 9 6" />
+  </Svg>
+);
+
+export const InfoIcon2 = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <line x1="12" y1="11" x2="12" y2="16.5" />
+    <circle cx="12" cy="7.75" r="0.5" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
+export const CameraIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z" />
+    <circle cx="12" cy="13" r="4" />
+  </Svg>
+);
+
+
 export const socialIcons = {
   whatsapp: WhatsAppIcon,
   facebook: FacebookIcon,

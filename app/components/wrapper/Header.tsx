@@ -148,7 +148,7 @@ export default function Header() {
 
   const browseButton = (
     <Link
-      href="/categories"
+      href="/search"
       onClick={closeMenu}
       className="inline-flex h-11 items-center gap-2.5 rounded-lg bg-luxol-orange px-5 text-xs font-medium text-black transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
     >
