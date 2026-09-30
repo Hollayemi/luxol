@@ -46,7 +46,7 @@ export function PromotionDetailDrawer({
   async function handleTogglePause() {
     if (!promotion) return;
     try {
-      if (promotion.status === "paused") {
+      if (promotion.status === "PAUSED") {
         await resumePromotion(promotion.id).unwrap();
         notify.success("Promotion resumed");
       } else {
@@ -155,14 +155,14 @@ export function PromotionDetailDrawer({
             <div className="mt-6 border-t border-neutral-100 pt-6">
               <h3 className="text-sm font-semibold text-neutral-900">Promotion Information</h3>
               <dl className="mt-4 space-y-3 text-sm">
-                <InfoRow label="Type" value={promotion.type === "coupon_code" ? "Coupon Code" : "Promotions"} />
+                <InfoRow label="Type" value={promotion.type === "COUPON_CODE" ? "Coupon Code" : "Promotions"} />
                 <InfoRow label="Discount" value={formatDiscount(promotion)} />
                 <InfoRow
                   label="Applies to"
                   value={
-                    promotion.appliesTo === "all_orders"
+                    promotion.appliesTo === "ALL_ORDERS"
                       ? "All orders"
-                      : promotion.appliesTo === "category"
+                      : promotion.appliesTo === "CATEGORY"
                         ? promotion.category?.name ?? "Selected category"
                         : "Selected products"
                   }
@@ -243,10 +243,10 @@ export function PromotionDetailDrawer({
           <button
             type="button"
             onClick={handleTogglePause}
-            disabled={pausing || resuming || promotion.status === "expired"}
+            disabled={pausing || resuming || promotion.status === "EXPIRED"}
             className="h-10 flex-1 rounded-lg bg-[#fdf0da] text-sm font-medium text-amber-700 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {promotion.status === "paused" ? "Resume" : "Pause"}
+            {promotion.status === "PAUSED" ? "Resume" : "Pause"}
           </button>
           <button
             type="button"

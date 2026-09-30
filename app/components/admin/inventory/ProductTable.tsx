@@ -122,7 +122,7 @@ function ProductRow({ product }: { product: Product }) {
 export function ProductTable({ products }: { products: Product[] }) {
   console.log(products)
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto pb-21">
       <table className="w-full min-w-[860px] text-left">
         <thead>
           <tr className="border-b border-neutral-100 text-xs uppercase tracking-wide text-neutral-400">

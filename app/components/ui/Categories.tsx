@@ -106,7 +106,7 @@ export default function Categories({
           whileInView="show"
           viewport={{ once: true, amount: 0.2 }}
           className="
-            mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4
+            mt-4 md:mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4
             [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
             sm:grid sm:grid-cols-4 sm:gap-x-4 sm:gap-y-8 sm:overflow-visible sm:pb-0
             lg:grid-cols-8
@@ -131,7 +131,7 @@ export default function Categories({
                     className="group flex flex-col items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-luxol-green"
                   >
                     <span
-                      className={`relative flex size-[92px] items-center justify-center overflow-hidden rounded-full ring-2 transition sm:size-[100px] ${
+                      className={`relative flex size-[60px] md:size-[92px] items-center justify-center overflow-hidden rounded-full ring-2 transition sm:size-[100px] ${
                         active
                           ? "ring-luxol-green"
                           : "ring-transparent group-hover:ring-luxol-orange/60"
@@ -148,10 +148,10 @@ export default function Categories({
                           aria-hidden="true"
                           className="grid grid-cols-2 gap-1.5"
                         >
-                          <span className="size-5 rounded-md bg-[#f1d47f]" />
-                          <span className="size-5 rounded-md bg-[#c9563f]" />
-                          <span className="size-5 rounded-md bg-[#7fb28c]" />
-                          <span className="size-5 rounded-md bg-[#f0a04b]" />
+                          <span className="size-3 md:size-5 md:rounded-md bg-[#f1d47f]" />
+                          <span className="size-3 md:size-5 md:rounded-md bg-[#c9563f]" />
+                          <span className="size-3 md:size-5 md:rounded-md bg-[#7fb28c]" />
+                          <span className="size-3 md:size-5 md:rounded-md bg-[#f0a04b]" />
                         </span>
                       ) : (
                         <Image
@@ -164,7 +164,7 @@ export default function Categories({
                       )}
                     </span>
 
-                    <span className="max-w-[120px] text-center text-sm font-medium leading-snug text-neutral-800 transition-colors group-hover:text-luxol-green">
+                    <span className="max-w-[90px] md:max-w-[120px] text-center text-sm font-medium leading-snug text-neutral-800 transition-colors group-hover:text-luxol-green">
                       {cat.label}
                     </span>
                   </Link>

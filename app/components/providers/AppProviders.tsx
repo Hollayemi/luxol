@@ -7,7 +7,8 @@ import NotificationHost from "@/app/components/notifications/NotificationHost";
 import { useAppDispatch } from "@/redux/hooks";
 import ReduxProvider from "@/redux/provider";
 import { addItem } from "@/redux/slices/cartSlice";
-
+// app/layout.tsx (server component)
+import { getServerSession, Session } from "next-auth";
 /**
  * Listens for the "cart:add" event that ProductCard, ProductRow and the
  * product page's Add to Cart button dispatch, and puts the product in the cart.
@@ -51,9 +52,9 @@ function CartEvents() {
  *
  * <NotificationHost /> renders whatever notify.success()/error()/... sends (app/lib/notify.ts).
  */
-export default function AppProviders({ children }: { children: ReactNode }) {
+export default function AppProviders({ children, session }: { children: ReactNode, session: Session | null }) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <ReduxProvider>
         <DialogProvider>
           {children}

@@ -13,13 +13,13 @@ export const catalogApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCategories: builder.query<ApiSuccess<StorefrontCategory[]>, void>({
       query: () => ({ url: API_ROUTES.catalog.categories }),
-      // providesTags: (result) =>
-      //   result
-      //     ? [
-      //       ...result.data.items.map((c) => ({ type: "Category" as const, id: c.id })),
-      //       { type: "Category" as const, id: "LIST" },
-      //     ]
-      //     : [{ type: "Category" as const, id: "LIST" }],
+      providesTags: (result) =>
+        result
+          ? [
+            ...result.data.map((c) => ({ type: "Category" as const, id: c.id })),
+            { type: "Category" as const, id: "LIST" },
+          ]
+          : [{ type: "Category" as const, id: "LIST" }],
     }),
 
     listStorefrontProducts: builder.query<

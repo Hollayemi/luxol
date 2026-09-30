@@ -26,11 +26,6 @@ export function loginWithCredentials(email: string, password: string, type: any 
   return post(API_ROUTES.auth.login, { email, password, type });
 }
 
-export async function adminLoginWithCredentials(email: string, password: string) {
-
-  return post(API_ROUTES.auth.adminLogin, { email, password });
-}
-
 /** Exchanges the Google ID token for the backend's own access token. */
 export function loginWithGoogle(idToken: string) {
   return post(API_ROUTES.auth.google, { idToken });

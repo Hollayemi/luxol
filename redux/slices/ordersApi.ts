@@ -1,4 +1,4 @@
-import { API_ROUTES } from "../../app/luxol-orders-rtq/redux/config/apiRoutes";
+import { API_ROUTES } from "../config/apiRoutes";
 import type {
   ApiSuccess,
   CancelOrderRequest,
@@ -89,13 +89,13 @@ export const ordersApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // getReturnEligibility: builder.query<ApiSuccess<ReturnEligibility>, string>({
-    //   query: (id) => ({
-    //     url: API_ROUTES.orders.returnEligibility(id),
-    //     method: "GET",
-    //   }),
-    //   providesTags: (result, error, id) => [{ type: "Orders", id }],
-    // }),
+    getReturnEligibility: builder.query<ApiSuccess<ReturnEligibility>, string>({
+      query: (id) => ({
+        url: API_ROUTES.orders.returnEligibility(id),
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Orders", id }],
+    }),
 
     requestReturn: builder.mutation<ApiSuccess<RequestReturnResponse>, RequestReturnRequest>({
       query: ({ id, ...body }) => ({

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import AdminPageHeader from "@/app/components/admin/AdminPageHeader";
+import MembershipClient from "./MembershipClient";
 
 export const metadata: Metadata = { title: "Membership" };
 
 export default function AdminMembershipPage() {
-  return <AdminPageHeader title="Membership" description="Active members, renewals and plans." />;
+  return <MembershipClient />;
 }

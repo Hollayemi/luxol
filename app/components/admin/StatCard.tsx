@@ -3,12 +3,15 @@ export function StatCard({
   value,
   label,
   change,
+  trend = "up",
   loading,
 }: {
   value: string;
   label: string;
   /** e.g. "+12.4% this month" or "+23 this month" — omit if there's nothing to compare to */
   change?: string;
+  /** Direction of `change`. "down" turns the arrow red. Default "up". */
+  trend?: "up" | "down";
   loading?: boolean;
 }) {
   if (loading) {
@@ -25,8 +28,12 @@ export function StatCard({
       <p className="text-2xl font-bold text-neutral-900 sm:text-[28px]">{value}</p>
       <p className="mt-1 text-sm text-neutral-500">{label}</p>
       {change && (
-        <p className="mt-1.5 flex items-center justify-center gap-1 text-xs font-medium text-emerald-600 sm:justify-start">
-          <span aria-hidden="true">↑</span>
+        <p
+          className={`mt-1.5 flex items-center justify-center gap-1 text-xs font-medium sm:justify-start ${
+            trend === "down" ? "text-red-600" : "text-emerald-600"
+          }`}
+        >
+          <span aria-hidden="true">{trend === "down" ? "↓" : "↑"}</span>
           {change}
         </p>
       )}

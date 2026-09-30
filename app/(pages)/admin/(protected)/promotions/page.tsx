@@ -66,7 +66,7 @@ export default function PromotionsPage() {
       p.status,
     ]);
     const csv = [header, ...rows]
-      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
+      .map((row) => row.map((cell) => `"${cell?.replace(/"/g, '""')}"`).join(","))
       .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

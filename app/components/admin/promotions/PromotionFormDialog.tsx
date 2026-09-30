@@ -19,19 +19,19 @@ import type {
 import { toDateTimeLocal } from "./formatters";
 
 const DISCOUNT_TYPE_OPTIONS: { label: string; value: DiscountType }[] = [
-  { label: "Percentage Discount", value: "percentage" },
-  { label: "Fixed Amount Off", value: "fixed_amount" },
-  { label: "Free Delivery", value: "free_delivery" },
+  { label: "Percentage Discount", value: "PERCENTAGE" },
+  { label: "Fixed Amount Off", value: "FIXED_AMOUNT" },
+  { label: "Free Delivery", value: "FREE_DELIVERY"},
 ];
 
 const APPLIES_TO_OPTIONS: { label: string; value: AppliesTo }[] = [
-  { label: "All Orders", value: "all_orders" },
-  { label: "Category", value: "category" },
-  { label: "Specific Products", value: "specific_products" },
+  { label: "All Orders", value: "ALL_ORDERS" },
+  { label: "Category", value: "CATEGORY" },
+  { label: "Specific Products", value: "SPECIFIC_PRODUCTS" },
 ];
 
 function discountPlaceholder(type: DiscountType) {
-  return type === "percentage" ? "e.g. 15 %" : type === "fixed_amount" ? "e.g. 5,000" : "N/A for free delivery";
+  return type === "PERCENTAGE" ? "e.g. 15 %" : type === "FIXED_AMOUNT" ? "e.g. 5,000" : "N/A for free delivery";
 }
 
 /** "New Promotion" / edit form (design image 3), opened from the Promotions page. */
@@ -48,17 +48,17 @@ export function PromotionFormDialog({
   const loading = creating || updating;
 
   const { data: categoriesData } = useListCategoriesQuery();
-  const categories = categoriesData?.data ?? [];
+  const categories = categoriesData?.data.items ?? [];
 
-  const [type, setType] = useState<PromotionType>(promotion?.type ?? "discount_deal");
+  const [type, setType] = useState<PromotionType>(promotion?.type ?? "DISCOUNT_DEAL");
   const [name, setName] = useState(promotion?.name ?? "");
   const [discountType, setDiscountType] = useState<DiscountType>(
-    promotion?.discountType ?? "percentage",
+    promotion?.discountType ?? "PERCENTAGE",
   );
   const [discountValue, setDiscountValue] = useState(
     promotion ? String(promotion.discountValue) : "",
   );
-  const [appliesTo, setAppliesTo] = useState<AppliesTo>(promotion?.appliesTo ?? "all_orders");
+  const [appliesTo, setAppliesTo] = useState<AppliesTo>(promotion?.appliesTo ?? "ALL_ORDERS");
   const [categoryId, setCategoryId] = useState(promotion?.categoryId ?? "");
   const [productSearch, setProductSearch] = useState("");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(
@@ -81,16 +81,16 @@ export function PromotionFormDialog({
   const [error, setError] = useState("");
 
   const { data: productsData } = useListProductsQuery(
-    appliesTo === "specific_products" ? { search: productSearch, perPage: 6 } : undefined,
-    { skip: appliesTo !== "specific_products" },
+    appliesTo === "SPECIFIC_PRODUCTS" ? { search: productSearch, perPage: 6 } : undefined,
+    { skip: appliesTo !== "SPECIFIC_PRODUCTS" },
   );
   const productResults = productsData?.data.items ?? [];
 
   const valid =
     name.trim().length >= 2 &&
-    (discountType === "free_delivery" || discountValue.trim().length > 0) &&
-    (appliesTo !== "category" || categoryId.length > 0) &&
-    (appliesTo !== "specific_products" || selectedProductIds.length > 0) &&
+    (discountType === "FREE_DELIVERY" || discountValue.trim().length > 0) &&
+    (appliesTo !== "CATEGORY" || categoryId.length > 0) &&
+    (appliesTo !== "SPECIFIC_PRODUCTS" || selectedProductIds.length > 0) &&
     startAt.length > 0;
 
   async function handleSave() {
@@ -101,10 +101,10 @@ export function PromotionFormDialog({
       type,
       name: name.trim(),
       discountType,
-      discountValue: discountType === "free_delivery" ? 0 : Number(discountValue),
+      discountValue: discountType === "FREE_DELIVERY" ? 0 : Number(discountValue),
       appliesTo,
-      categoryId: appliesTo === "category" ? categoryId : undefined,
-      productIds: appliesTo === "specific_products" ? selectedProductIds : undefined,
+      categoryId: appliesTo === "CATEGORY" ? categoryId : undefined,
+      productIds: appliesTo === "SPECIFIC_PRODUCTS" ? selectedProductIds : undefined,
       minimumOrderAmount: minimumOrderAmount.trim() ? Number(minimumOrderAmount) : undefined,
       maximumDiscount: maximumDiscount.trim() ? Number(maximumDiscount) : undefined,
       usageLimit: usageLimit.trim() ? Number(usageLimit) : undefined,
@@ -157,14 +157,14 @@ export function PromotionFormDialog({
               <TypeCard
                 label="Discount Deal"
                 description="Apply a discount automatically to eligible products or orders."
-                selected={type === "discount_deal"}
-                onClick={() => setType("discount_deal")}
+                selected={type === "DISCOUNT_DEAL"}
+                onClick={() => setType("DISCOUNT_DEAL")}
               />
               <TypeCard
                 label="Coupon Code"
                 description="Create a code customers can enter at checkout to redeem a specific offer."
-                selected={type === "coupon_code"}
-                onClick={() => setType("coupon_code")}
+                selected={type === "COUPON_CODE"}
+                onClick={() => setType("COUPON_CODE")}
               />
             </div>
           </Field>
@@ -184,7 +184,7 @@ export function PromotionFormDialog({
             options={DISCOUNT_TYPE_OPTIONS}
           />
 
-          {discountType !== "free_delivery" && (
+          {discountType !== "FREE_DELIVERY" && (
             <TextField
               label="Discount Value"
               type="number"
@@ -203,17 +203,17 @@ export function PromotionFormDialog({
             options={APPLIES_TO_OPTIONS}
           />
 
-          {appliesTo === "category" && (
+          {appliesTo === "CATEGORY" && (
             <SelectField
               label="Category"
               value={categoryId}
               onChange={setCategoryId}
-              options={categories.map((c) => ({ label: c.name, value: c.id }))}
+              options={categories.map((c:any) => ({ label: c.name, value: c.id }))}
               placeholder="Select the category"
             />
           )}
 
-          {appliesTo === "specific_products" && (
+          {appliesTo === "SPECIFIC_PRODUCTS" && (
             <Field label="Selected Products" htmlFor="promo-products">
               <div className="rounded-lg bg-neutral-100 p-3">
                 <input

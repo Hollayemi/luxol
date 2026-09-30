@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  formatOrderDate,
-  formatOrderId,
-  getItemsCount,
-  type Order,
-  type OrdersTab,
-} from "@/app/data/orders-data";
+import type { OrderSummary } from "@/redux/types";
+import { formatOrderDate, formatOrderId, type OrdersTab } from "@/app/utils/order";
 import StatusBadge from "./StatusBadge";
 
 const TABS: { value: OrdersTab; label: string }[] = [
@@ -18,12 +13,16 @@ export default function OrderList({
   activeTab,
   onTabChange,
   orders,
+  isLoading = false,
+  isError = false,
   selectedId,
   onSelect,
 }: {
   activeTab: OrdersTab;
   onTabChange: (tab: OrdersTab) => void;
-  orders: Order[];
+  orders: OrderSummary[];
+  isLoading?: boolean;
+  isError?: boolean;
   selectedId?: string;
   onSelect: (id: string) => void;
 }) {
@@ -57,7 +56,20 @@ export default function OrderList({
       </div>
 
       {/* List */}
-      {orders.length === 0 ? (
+      {isLoading ? (
+        <ul className="mt-1 flex flex-col gap-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <li key={i} className="animate-pulse rounded-xl px-3 py-4">
+              <div className="h-3.5 w-2/3 rounded bg-neutral-200" />
+              <div className="mt-2 h-3 w-1/2 rounded bg-neutral-200" />
+            </li>
+          ))}
+        </ul>
+      ) : isError ? (
+        <p className="py-10 text-center text-sm text-neutral-400">
+          Couldn&rsquo;t load orders. Please try again.
+        </p>
+      ) : orders.length === 0 ? (
         <p className="py-10 text-center text-sm text-neutral-400">
           No orders here yet.
         </p>
@@ -88,7 +100,7 @@ export default function OrderList({
                         selected ? "text-luxol-orange/70" : "text-neutral-400"
                       }`}
                     >
-                      {formatOrderDate(order.placedAt)} · {getItemsCount(order)} items
+                      {formatOrderDate(order.placedAt)} · {order.itemsCount} items
                     </span>
                   </span>
 

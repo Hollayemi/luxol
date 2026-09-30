@@ -6,7 +6,6 @@
  * database calls. The pages only depend on those function signatures.
  */
 
-import { shopMoreProducts } from "../data/home-data";
 import { Product } from "../utils/product";
 
 export type CatalogItem = Product & {
@@ -84,7 +83,7 @@ function item(
   extra: Partial<CatalogItem> = {},
 ): CatalogItem {
   return make(
-    { id: slug, slug, name, qty: 20, price, image: `/products/${slug}.webp` },
+    { id: slug, slug, name, qty: 20, unitPrice:price, images: [`/products/${slug}.webp`] },
     category,
     extra,
   );
@@ -94,20 +93,6 @@ const fromShopMore = (p: Product) =>
   make(p, SHOP_MORE_CATEGORY[p.slug] ?? "groceries");
 
 export const CATALOG: CatalogItem[] = [
-  ...shopMoreProducts.slice(0, 6).map(fromShopMore),
-  item("5alive-delight-berry-blast", "5Alive Delight Berry Blast", 1400, "drinks"),
-  item("ewedu-big-bundle", "Ewedu - Big Bundle", 3000, "vegetables-produce"),
-  item("plantain-unripe-x12", "Plantain - Unripe x12", 5500, "vegetables-produce"),
-  item("plantain-ripe-x12", "Plantain - Ripe x12", 6800, "vegetables-produce"),
-  item("scent-leaf-efirin", "Scent Leaf (Efirin)", 300, "vegetables-produce"),
-  item("blue-band-spread", "Blue Band Spread for Bread", 3000, "groceries"),
-  ...shopMoreProducts.slice(6).map(fromShopMore),
-  item("elle-vire-butter-salted", "Elle & Vire Butter Salted", 8630, "groceries"),
-  item("fanice-ice-cream-vanilla", "Fanice Ice Cream Vanilla", 14190, "groceries"),
-  item("olmeca-tequila-silver", "Olmeca Tequila Silver", 27800, "drinks"),
-  item("nestle-milo-energy-food-drink", "Nestle Milo Energy Food Drink", 6740, "groceries"),
-  item("black-forest-cake", "Black Forest Cake", 1530, "bakery"),
-  item("mcvities-butter-shortbread", "Mcvities Butter Shortbread", 9350, "groceries"),
 
   // The product used in the product page design
   item("fresh-fruit-parfait", "Fresh Fruit Parfait", 4820, "bakery", {
@@ -162,8 +147,8 @@ export async function queryProducts(query: ProductQuery = {}) {
   const list = CATALOG.filter((p) => {
     if (needle && !p.name.toLowerCase().includes(needle)) return false;
     if (categories.length && !categories.includes(p.category)) return false;
-    if (minPrice !== undefined && p.price < minPrice) return false;
-    if (maxPrice !== undefined && p.price > maxPrice) return false;
+    if (minPrice !== undefined && p.unitPrice < minPrice) return false;
+    if (maxPrice !== undefined && p.unitPrice > maxPrice) return false;
     if (types.length && !types.includes(p.productType)) return false;
     if (availability.includes("in-stock") && !p.inStock) return false;
     if (availability.includes("delivery") && !p.delivery) return false;
@@ -177,8 +162,8 @@ export async function queryProducts(query: ProductQuery = {}) {
     return true;
   });
 
-  if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
-  if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
+  if (sort === "price-asc") list.sort((a, b) => a.unitPrice - b.unitPrice);
+  if (sort === "price-desc") list.sort((a, b) => b.unitPrice - a.unitPrice);
   if (sort === "name-asc") list.sort((a, b) => a.name.localeCompare(b.name));
 
   const total = list.length;

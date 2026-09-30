@@ -18,7 +18,7 @@ export type PromoInfo = {
 
 export type CartState = {
   items: CartItem[];
-  address: string;
+  addressId: string;
   phone: string;
   deliveryMethod: string;
   promo: PromoInfo | null;
@@ -39,7 +39,7 @@ export type PlaceOrderItem = {
 
 export type PlaceOrderRequest = {
   items: PlaceOrderItem[];
-  address: string;
+  addressId: string;
   phone: string;
   deliveryMethod: string;
   promoCode?: string;
@@ -47,8 +47,13 @@ export type PlaceOrderRequest = {
 
 export type OrderResponse = {
   id: number | string;
-  /** Shown to the customer, e.g. "LX-10482" */
   orderNumber: string;
+  payment: {
+    reference: string,
+    authorizationUrl: string,
+    amount: number,
+    currency: string,
+  },
 };
 
 /* ------------------------------------------------------------------ */
@@ -57,8 +62,23 @@ export type OrderResponse = {
 /* the server always re-derives name/price/image from its own catalog. */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Line items reuse PlaceOrderItem's required fields (productId, quantity,
+ * variant). The display fields are optional add-ons: if the backend ever
+ * starts returning them (it already has the catalog on hand when building
+ * this response), the merge into the local cart can render the item right
+ * away instead of only being able to top up a quantity we already know
+ * about locally.
+ */
+export type ServerCartItem = PlaceOrderItem & {
+  slug?: string;
+  name?: string;
+  image?: string;
+  price?: number;
+};
+
 export type ServerCart = {
-  items: PlaceOrderItem[];
+  items: ServerCartItem[];
   address: string;
   phone: string;
   deliveryMethod: string;
@@ -69,10 +89,6 @@ export type ServerCart = {
 /** PUT /cart — replaces the account's saved cart with the client's. */
 export type SyncCartRequest = {
   items: PlaceOrderItem[];
-  address?: string;
-  phone?: string;
-  deliveryMethod?: string;
-  promoCode?: string;
 };
 
 /** POST /cart/merge — called right after login to fold a guest cart in. */

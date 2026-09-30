@@ -43,6 +43,27 @@ export const API_ROUTES = {
     pause: (id: string) => `/admin/promotions/${id}/pause`,
     resume: (id: string) => `/admin/promotions/${id}/resume`,
   },
+  adminOrders: {
+    stats: "/admin/orders/stats",
+    list: "/admin/orders",
+    detail: (id: string) => `/admin/orders/${id}`,
+    status: (id: string) => `/admin/orders/${id}/status`,
+    cancel: (id: string) => `/admin/orders/${id}/cancel`,
+  },
+   adminCustomers: {
+    stats: "/admin/customers/stats",
+    list: "/admin/customers",
+    detail: (id: string) => `/admin/customers/${id}`,
+    status: (id: string) => `/admin/customers/${id}/status`,
+  },
+  adminMembership: {
+    stats: "/admin/membership/stats",
+    plans: "/admin/membership/plans",
+    plan: (id: string) => `/admin/membership/plans/${id}`,
+    subscribers: "/admin/membership/subscribers",
+    proteins: "/admin/membership/proteins",
+    protein: (id: string) => `/admin/membership/proteins/${id}`,
+  },
   orders: {
     create: "/orders",
     list: "/orders",

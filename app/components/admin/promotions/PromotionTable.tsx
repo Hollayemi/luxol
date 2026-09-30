@@ -52,7 +52,7 @@ function PromotionRow({ promotion }: { promotion: Promotion }) {
 
   async function handleTogglePause() {
     try {
-      if (promotion.status === "paused") {
+      if (promotion.status === "PAUSED") {
         await resumePromotion(promotion.id).unwrap();
         notify.success("Promotion resumed");
       } else {
@@ -92,7 +92,7 @@ function PromotionRow({ promotion }: { promotion: Promotion }) {
         {promotion.name}
       </td>
       <td className="py-4 pr-4 text-sm text-neutral-700" onClick={openDetail}>
-        {promotion.type === "coupon_code" ? "Coupon" : "Promotion"}
+        {promotion.type === "COUPON_CODE" ? "Coupon" : "Promotion"}
       </td>
       <td className="py-4 pr-4 text-sm text-neutral-700" onClick={openDetail}>
         {formatAppliesTo(promotion)}
@@ -114,9 +114,9 @@ function PromotionRow({ promotion }: { promotion: Promotion }) {
           items={[
             { label: "Edit", onClick: handleEdit, icon: <AdminIcon name="edit" className="size-4" /> },
             {
-              label: promotion.status === "paused" ? "Resume" : "Pause",
+              label: promotion.status === "PAUSED" ? "Resume" : "Pause",
               onClick: handleTogglePause,
-              icon: <AdminIcon name={promotion.status === "paused" ? "play" : "pause"} className="size-4" />,
+              icon: <AdminIcon name={promotion.status === "PAUSED" ? "play" : "pause"} className="size-4" />,
             },
             {
               label: "Delete",

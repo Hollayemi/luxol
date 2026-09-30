@@ -2,26 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { formatNaira, type Product } from "../../utils/product";
+import { formatNaira, getDisplayPrice, toCartAddDetail } from "../../utils/product";
+import { useIsInCart } from "@/redux/hooks";
+import type { StorefrontProduct } from "@/redux/types";
 
-export default function ProductRow({ product }: { product: Product }) {
-    const [added, setAdded] = useState(false);
-    const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useEffect(() => {
-        return () => {
-            if (timer.current) clearTimeout(timer.current);
-        };
-    }, []);
+export default function ProductRow({ product }: { product: StorefrontProduct }) {
+    // Reflects the real cart, so it stays "Added" until the item is removed.
+    const added = useIsInCart(product.id);
+    const { price, wasPrice } = getDisplayPrice(product);
+    const outOfStock = product.stock <= 0;
 
     function handleAdd() {
         // Same event as ProductCard, so one cart listener handles both views.
-        window.dispatchEvent(new CustomEvent("cart:add", { detail: product }));
-
-        setAdded(true);
-        if (timer.current) clearTimeout(timer.current);
-        timer.current = setTimeout(() => setAdded(false), 1500);
+        window.dispatchEvent(new CustomEvent("cart:add", { detail: toCartAddDetail(product) }));
     }
 
     const href = `/product/${product.slug}`;
@@ -54,33 +47,37 @@ export default function ProductRow({ product }: { product: Product }) {
                     </Link>
                 </h3>
 
-                <p className="mt-0.5 text-xs text-neutral-500">Qty: {product.qty}</p>
+                <p className="mt-0.5 truncate text-xs text-neutral-500">{product.unitType}</p>
 
                 <p className="mt-2 flex flex-wrap items-baseline gap-x-3">
                     <span className="text-2xl font-bold text-neutral-800 sm:text-[28px]">
-                        {formatNaira(product.unitPrice)}
+                        {formatNaira(price)}
                     </span>
-                    {product.oldPrice ? (
-                        <del className="text-sm text-neutral-400">
-                            {formatNaira(product.oldPrice)}
-                        </del>
+                    {wasPrice ? (
+                        <del className="text-sm text-neutral-400">{formatNaira(wasPrice)}</del>
                     ) : null}
                 </p>
             </div>
 
             <div className="flex w-full gap-2 sm:w-[150px] sm:flex-col">
-                <div
-                    onClick={handleAdd}
-                    className="inline-flex h-11! min-h-11 flex-1 items-center justify-center rounded-lg bg-luxol-green px-4 text-sm font-medium text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
-                >
-                    {added ? (
-                        "Added"
-                    ) : (
-                        <>
-                            Add to Cart<span className="sr-only"> {product.name}</span>
-                        </>
-                    )}
-                </div>
+                {outOfStock ? (
+                    <div className="inline-flex h-11! min-h-11 flex-1 items-center justify-center rounded-lg bg-neutral-100 px-4 text-sm font-medium text-neutral-500">
+                        Out of stock
+                    </div>
+                ) : (
+                    <div
+                        onClick={handleAdd}
+                        className="inline-flex h-11! min-h-11 flex-1 items-center justify-center rounded-lg bg-luxol-green px-4 text-sm font-medium text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
+                    >
+                        {added ? (
+                            "Added"
+                        ) : (
+                            <>
+                                Add to Cart<span className="sr-only"> {product.name}</span>
+                            </>
+                        )}
+                    </div>
+                )}
 
                 <Link
                     href={href}

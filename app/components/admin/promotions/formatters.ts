@@ -1,22 +1,22 @@
 import { formatNaira } from "@/app/utils/product";
 import type { AppliesTo, DiscountType, Promotion } from "@/redux/types";
 
-/** 15 + "percentage" -> "15%"; 5000 + "fixed_amount" -> "₦5,000 OFF"; "free_delivery" -> "Free" */
+/** 15 + "PERCENTAGE" -> "15%"; 5000 + "FIXED_AMOUNT" -> "₦5,000 OFF"; "free_delivery" -> "Free" */
 export function formatDiscount(promotion: Pick<Promotion, "discountType" | "discountValue">) {
   switch (promotion.discountType) {
-    case "percentage":
+    case "PERCENTAGE":
       return `${promotion.discountValue}%`;
-    case "fixed_amount":
+    case "FIXED_AMOUNT":
       return `${formatNaira(promotion.discountValue)} OFF`;
-    case "free_delivery":
+    case "FREE_DELIVERY":
       return "Free";
   }
 }
 
 const DISCOUNT_TYPE_LABELS: Record<DiscountType, string> = {
-  percentage: "Percentage Discount",
-  fixed_amount: "Fixed Amount Off",
-  free_delivery: "Free Delivery",
+  PERCENTAGE: "Percentage Discount",
+  FIXED_AMOUNT: "Fixed Amount Off",
+  FREE_DELIVERY: "Free Delivery",
 };
 
 export function formatDiscountType(type: DiscountType) {
@@ -24,14 +24,14 @@ export function formatDiscountType(type: DiscountType) {
 }
 
 const APPLIES_TO_LABELS: Record<AppliesTo, string> = {
-  all_orders: "All orders",
-  category: "Selected category",
-  specific_products: "Selected products",
+  ALL_ORDERS: "All orders",
+  CATEGORY: "Selected category",
+  SPECIFIC_PRODUCTS: "Selected products",
 };
 
 export function formatAppliesTo(promotion: Pick<Promotion, "appliesTo" | "affectedCount" | "category">) {
-  if (promotion.appliesTo === "all_orders") return "All orders";
-  if (promotion.appliesTo === "category" && promotion.category) return promotion.category.name;
+  if (promotion.appliesTo === "ALL_ORDERS") return "All orders";
+  if (promotion.appliesTo === "CATEGORY" && promotion.category) return promotion.category.name;
   return `${promotion.affectedCount} products`;
 }
 

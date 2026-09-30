@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import { encode } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { loginWithCredentials, adminLoginWithCredentials, loginWithGoogle } from "@/lib/auth/backend";
+import { loginWithCredentials, loginWithGoogle } from "@/lib/auth/backend";
 
 /** next-auth's default. Used when "Keep me signed in" is ticked (and for customers). */
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60;

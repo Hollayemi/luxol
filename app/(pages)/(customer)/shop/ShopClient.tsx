@@ -61,7 +61,7 @@ function pageItems(current: number, total: number): (number | "…")[] {
   return items;
 }
 
-const container = "mx-auto w-full max-w-[1240px] px-4 sm:px-6";
+const container = "mx-auto w-full max-w-[1240px] px-2 sm:px-6";
 
 export default function ShopClient() {
   const searchParams = useSearchParams();
@@ -97,7 +97,7 @@ export default function ShopClient() {
   return (
     <div>
       {/* Page banner */}
-      <section className="bg-[#f2f2f0] py-12 text-center sm:py-16">
+      <section className="bg-[#f2f2f0] py-5 md:py-12 text-center sm:py-16">
         <div className={container}>
           <h1 className="text-3xl font-bold text-neutral-900 sm:text-4xl">
             Shop
@@ -135,7 +135,7 @@ export default function ShopClient() {
         </div>
       </section>
 
-      <div className={`${container} py-12 sm:py-16`}>
+      <div className={`${container} py-3 sm:py-16`}>
         {/* Category filter */}
         <Categories fromShop category={category} />
 

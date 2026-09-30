@@ -2,26 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { formatNaira, type Product } from "../../utils/product";
+import { formatNaira, getDisplayPrice, toCartAddDetail } from "../../utils/product";
+import { useIsInCart } from "@/redux/hooks";
+import type { StorefrontProduct } from "@/redux/types";
 
-export default function ProductCard({ product }: { product: Product }) {
-  const [added, setAdded] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, []);
+export default function ProductCard({ product }: { product: StorefrontProduct }) {
+  // The real source of truth for the button label: stays "Added" for as
+  // long as the item is actually in the cart, and reverts if it's removed.
+  const added = useIsInCart(product.id);
+  const { price, wasPrice, discountPercent } = getDisplayPrice(product);
+  const outOfStock = product.stock <= 0;
 
   function handleAdd() {
-    // Your cart can listen for this: window.addEventListener("cart:add", ...)
-    window.dispatchEvent(new CustomEvent("cart:add", { detail: product }));
-
-    setAdded(true);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setAdded(false), 1500);
+    // Works for guests too — no login or server round-trip needed just to
+    // add to the cart. CartEvents (AppProviders.tsx) puts it in the local
+    // cart; the account's saved cart is synced separately, only when
+    // signed in (see ServerCartSync/CartAutoSync in redux/provider.tsx).
+    window.dispatchEvent(new CustomEvent("cart:add", { detail: toCartAddDetail(product) }));
   }
 
   const href = `/product/${product.slug}`;
@@ -45,27 +42,33 @@ export default function ProductCard({ product }: { product: Product }) {
           />
         </Link>
 
-        {product.discountPercent ? (
+        {discountPercent ? (
           <span className="pointer-events-none absolute left-2 top-2 flex size-9 flex-col items-center justify-center rounded-full bg-luxol-green text-[9px] font-bold leading-none text-white">
-            <span>{product.discountPercent}%</span>
+            <span>{discountPercent}%</span>
             <span>OFF</span>
           </span>
         ) : null}
 
-        <button
-          type="button"
-          onClick={handleAdd}
-          aria-label={`Add ${product.name} to cart`}
-          className="absolute bottom-2 right-0 inline-flex h-7 -translate-x-2 items-center gap-1 whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 text-[11px] font-medium text-luxol-green shadow-sm transition hover:border-luxol-green hover:bg-luxol-green hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
-        >
-          {added ? (
-            "Added"
-          ) : (
-            <>
-              Add to Cart <span aria-hidden="true">+</span>
-            </>
-          )}
-        </button>
+        {outOfStock ? (
+          <span className="pointer-events-none absolute inset-x-2 bottom-2 rounded-md bg-neutral-900/80 py-1 text-center text-[10px] font-medium text-white">
+            Out of stock
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAdd}
+            aria-label={`Add ${product.name} to cart`}
+            className="absolute bottom-2 right-0 inline-flex h-7 -translate-x-2 items-center gap-1 whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 text-[11px] font-medium text-luxol-green shadow-sm transition hover:border-luxol-green hover:bg-luxol-green hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
+          >
+            {added ? (
+              "Added"
+            ) : (
+              <>
+                Add to Cart <span aria-hidden="true">+</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       <div className="mt-2.5">
@@ -79,16 +82,14 @@ export default function ProductCard({ product }: { product: Product }) {
           </Link>
         </h3>
 
-        <p className="mt-0.5 text-xs text-neutral-500">Qty: {product.qty}</p>
+        <p className="mt-0.5 truncate text-xs text-neutral-500">{product.unitType}</p>
 
         <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
           <span className="text-base font-bold text-neutral-900">
-            {formatNaira(product.unitPrice)}
+            {formatNaira(price)}
           </span>
-          {product.oldPrice ? (
-            <del className="text-xs text-neutral-400">
-              {formatNaira(product.oldPrice)}
-            </del>
+          {wasPrice ? (
+            <del className="text-xs text-neutral-400">{formatNaira(wasPrice)}</del>
           ) : null}
         </p>
       </div>

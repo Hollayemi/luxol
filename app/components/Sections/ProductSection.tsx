@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Product } from "../../utils/product";
+import type { StorefrontProduct } from "@/redux/types";
 import ProductCard from "../ui/ProductCard";
 import { fadeUp, stagger, viewportOnce } from "../ui/motion";
 
@@ -11,7 +11,7 @@ type ProductSectionProps = {
   title: string;
   viewAllHref: string;
   viewAllLabel?: string;
-  products: Product[];
+  products: StorefrontProduct[];
   isLoading?: boolean;
   /** Shown when the request finished but returned no products. */
   emptyMessage?: string;

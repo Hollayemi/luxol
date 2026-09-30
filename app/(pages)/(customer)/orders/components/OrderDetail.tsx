@@ -4,17 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 import { CopyIcon } from "@/app/components/ui/icons";
 import { formatNaira } from "@/app/utils/product";
-import {
-  formatOrderDateTime,
-  formatOrderId,
-  getItemsTotal,
-  getUnitLabel,
-  type Order,
-} from "@/app/data/orders-data";
+import type { OrderDetail as OrderDetailData } from "@/redux/types";
+import { formatOrderDateTime, formatOrderId, getUnitLabel } from "@/app/utils/order";
 import StatusBadge from "./StatusBadge";
 import TrackTimeline from "./TrackTimeline";
 
-function CopyOrderId({ order }: { order: Order }) {
+function CopyOrderId({ order }: { order: OrderDetailData }) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -71,12 +66,12 @@ function SummaryRow({
 export default function OrderDetail({
   order,
   onSubmitRating,
+  isRating = false,
 }: {
-  order: Order;
+  order: OrderDetailData;
   onSubmitRating: (orderId: string, stars: number, comment: string) => void;
+  isRating?: boolean;
 }) {
-  const itemsTotal = getItemsTotal(order);
-
   return (
     <div>
       <h1 className="text-lg font-semibold text-neutral-900">Order Details</h1>
@@ -124,7 +119,7 @@ export default function OrderDetail({
         <SummaryRow label="Delivery Address">{order.deliveryAddress}</SummaryRow>
         <SummaryRow label="Email">{order.email}</SummaryRow>
         <SummaryRow label="Items Total" bold>
-          {formatNaira(itemsTotal)}
+          {formatNaira(order.itemsTotal)}
         </SummaryRow>
         <SummaryRow label="Discount" bold>
           {formatNaira(order.discount)}
@@ -138,6 +133,7 @@ export default function OrderDetail({
         <TrackTimeline
           order={order}
           onSubmitRating={(stars, comment) => onSubmitRating(order.id, stars, comment)}
+          isRating={isRating}
         />
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import {
   addItem,
   clearCart,
+  makeSelectIsInCart,
   removeItem,
   selectCart,
   selectCartCount,
@@ -25,6 +26,15 @@ export function useCartCount() {
   return useAppSelector(selectCartCount);
 }
 
+/**
+ * Whether `id` (with this variant, if any) is already in the cart — the
+ * source of truth for "Added" vs "Add to Cart" buttons. It reflects the
+ * real cart, so it stays correct even after the item is removed again.
+ */
+export function useIsInCart(id: string, variant?: string) {
+  return useAppSelector(useMemo(() => makeSelectIsInCart(id, variant), [id, variant]));
+}
+
 /** The cart state, derived totals and ready-to-call actions. */
 export function useCart() {
   const cart = useAppSelector(selectCart);
@@ -39,7 +49,7 @@ export function useCart() {
       setQuantity: (key: string, quantity: number) =>
         dispatch(setQuantity({ key, quantity })),
       clear: () => dispatch(clearCart()),
-      setAddress: (address: string) => dispatch(setAddress(address)),
+      setAddress: (addressId: string) => dispatch(setAddress(addressId)),
       setPhone: (phone: string) => dispatch(setPhone(phone)),
       setDeliveryMethod: (id: string) => dispatch(setDeliveryMethod(id)),
       setPromo: (promo: PromoInfo | null) => dispatch(setPromo(promo)),

@@ -4,7 +4,6 @@ import Header from "./Header";
 
 type MainLayoutProps = FooterProps & {
   children: ReactNode;
-  /** Extra classes for the <main> element (e.g. a page background). */
   className?: string;
 };
 

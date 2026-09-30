@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import DialogHeader from "@/app/components/dialog/DialogHeader";
 import { useDialog } from "@/app/components/dialog/DialogProvider";
 import {
@@ -21,8 +21,11 @@ import {
   useValidatePromoMutation,
 } from "@/redux/slices/cartApi";
 import { MAX_QUANTITY } from "@/redux/slices/cartSlice";
+import { useListAddressesQuery } from "@/redux/slices/usersApi";
 import { type CartItem } from "@/redux/types";
 import { DELIVERY_METHODS } from "@/redux/types/checkout";
+import type { Address } from "@/redux/types/users";
+import { useRouter } from "next/navigation";
 
 const fieldClass =
   "h-[52px] w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-luxol-green focus:outline-none focus:ring-2 focus:ring-luxol-green/30";
@@ -34,6 +37,11 @@ const primaryButton =
 
 const outlineButton =
   "inline-flex h-12 w-full items-center justify-center rounded-lg border border-neutral-300 bg-white px-6 text-sm font-medium text-neutral-900 transition hover:border-luxol-green hover:text-luxol-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green";
+
+/** "Jane Doe, 12 Allen Ave, Ikeja" — the single line shown for a saved address */
+function addressLine(a: Address) {
+  return [a.fullName, a.address, a.region].filter(Boolean).join(", ");
+}
 
 /* ------------------------------------------------------------------ */
 /* Entry point: decides which view to show                             */
@@ -155,6 +163,7 @@ function OrderSuccess({ orderId }: { orderId: string }) {
 type Errors = { address?: string; phone?: string; method?: string };
 
 function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
+  const router = useRouter()
   const cart = useCart();
   const { closeDialog } = useDialog();
   const isAuthenticated = useAppSelector((s) => s.session.status === "authenticated");
@@ -165,6 +174,7 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
   const { data: deliveryMethodsData } = useGetDeliveryMethodsQuery();
   const deliveryMethods = deliveryMethodsData?.data ?? DELIVERY_METHODS;
 
+  const [addressId, setAddressId] = useState(cart.addressId ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -177,7 +187,7 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
 
   async function handleCheckout() {
     const next: Errors = {};
-    if (!cart.address.trim()) next.address = "Add a delivery address.";
+    if (!addressId) next.address = "Select a delivery address.";
     if (cart.phone.replace(/\D/g, "").length < 10) {
       next.phone = "Enter a valid phone number.";
     }
@@ -201,12 +211,10 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
       // cart recovery); best-effort, never blocks checkout.
       if (isAuthenticated) {
         syncCart({
-          items,
-          address: cart.address.trim(),
-          phone: cart.phone.trim(),
-          deliveryMethod: cart.deliveryMethod,
-          promoCode: cart.promo?.code,
-        }).catch(() => {});
+          items
+        }).catch((e) =>  {
+          router
+        });
       }
 
       // Re-check stock and current prices right before checkout — the
@@ -223,14 +231,16 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
 
       const response = await placeOrder({
         items,
-        address: cart.address.trim(),
+        addressId,
         phone: cart.phone.trim(),
         deliveryMethod: cart.deliveryMethod,
         promoCode: cart.promo?.code,
-      }).unwrap();
+      }).unwrap().then(e => {
+        router.push(e.data.payment.authorizationUrl)
+        cart.clear();
+        onPlaced(e.data.orderNumber);
+      });
 
-      cart.clear();
-      onPlaced(response.data.orderNumber);
     } catch (err) {
       setSubmitError(
         getErrorMessage(err, "We couldn't place your order. Please try again."),
@@ -253,7 +263,14 @@ function CartContents({ onPlaced }: { onPlaced: (orderId: string) => void }) {
 
         <div className="mt-4 space-y-8 border-t border-neutral-200 pt-8">
           {/* Delivery address */}
-          <AddressSection error={errors.address} onChange={() => setErrors((e) => ({ ...e, address: undefined }))} />
+          <AddressSection
+            selectedId={addressId}
+            error={errors.address}
+            onSelect={(id) => {
+              setAddressId(id);
+              setErrors((e) => ({ ...e, address: undefined }));
+            }}
+          />
 
           {/* Phone */}
           <div>
@@ -436,97 +453,100 @@ function CartRow({ item }: { item: CartItem }) {
   );
 }
 
+/**
+ * Delivery address: a dropdown of the customer's saved addresses (the same
+ * address book they manage on /account?tab=address), with an "Add Address"
+ * link underneath for creating a new one.
+ */
 function AddressSection({
+  selectedId,
   error,
-  onChange,
+  onSelect,
 }: {
+  selectedId: string;
   error?: string;
-  onChange: () => void;
+  onSelect: (id: string) => void;
 }) {
   const cart = useCart();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState("");
+  const { closeDialog } = useDialog();
+  const isAuthenticated = useAppSelector((s) => s.session.status === "authenticated");
+  const { data, isLoading } = useListAddressesQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const addresses = data?.data ?? [];
 
-  function startEditing() {
-    setDraft(cart.address);
-    setEditing(true);
+  function choose(a: Address) {
+    onSelect(a.id);
+    cart.setAddress(addressLine(a));
+    // Saved addresses carry a phone number: prefill the receiver's if empty
+    if (!cart.phone.trim() && a.phone) cart.setPhone(a.phone);
   }
 
-  function save() {
-    const value = draft.trim();
-    if (!value) return;
-    cart.setAddress(value);
-    onChange();
-    setEditing(false);
-  }
+  // Once the list loads, keep a valid selection: the previously chosen
+  // address if it still exists, otherwise the first one.
+  useEffect(() => {
+    if (addresses.length === 0) return;
+    const current = addresses.find((a) => a.id === selectedId);
+    if (!current) choose(addresses[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addresses, selectedId]);
+
+  const placeholder = !isAuthenticated
+    ? "Sign in to choose a saved address"
+    : isLoading
+      ? "Loading addresses..."
+      : addresses.length === 0
+        ? "No saved addresses yet"
+        : "Select delivery address";
 
   return (
     <div>
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+      <label
+        htmlFor="cart-address"
+        className="flex items-center gap-2 text-sm font-semibold text-neutral-900"
+      >
         <DeliveryIcon className="size-4" />
         Delivering to:
-      </h3>
+      </label>
 
-      {editing ? (
-        <div className="mt-3">
-          <label htmlFor="cart-address" className="sr-only">
-            Delivery address
-          </label>
-          <textarea
-            id="cart-address"
-            rows={3}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Street, area, city, state"
-            autoFocus
-            className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-luxol-green focus:outline-none focus:ring-2 focus:ring-luxol-green/30"
-          />
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={save}
-              disabled={!draft.trim()}
-              className="h-9 rounded-lg bg-luxol-green px-4 text-xs font-medium text-white transition hover:brightness-110 disabled:opacity-50"
-            >
-              Save address
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="h-9 rounded-lg border border-neutral-300 px-4 text-xs font-medium text-neutral-700 transition hover:border-luxol-green hover:text-luxol-green"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : cart.address ? (
-        <div className="mt-3 flex items-start justify-between gap-4">
-          <p className="text-sm leading-relaxed text-neutral-600">
-            {cart.address}
-          </p>
-          <button
-            type="button"
-            onClick={startEditing}
-            className="h-8 shrink-0 rounded-md bg-[#e6f3e4] px-3 text-xs font-medium text-luxol-green transition hover:brightness-95"
-          >
-            Change
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={startEditing}
-          className="mt-3 inline-flex h-10 items-center gap-2 rounded-lg bg-[#e6f3e4] px-4 text-sm font-medium text-luxol-green transition hover:brightness-95"
+      <div className="relative mt-3">
+        <select
+          id="cart-address"
+          value={addresses.some((a) => a.id === selectedId) ? selectedId : ""}
+          disabled={!isAuthenticated || isLoading || addresses.length === 0}
+          onChange={(e) => {
+            const a = addresses.find((x) => x.id === e.target.value);
+            if (a) choose(a);
+          }}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "cart-address-error" : undefined}
+          className={`${fieldClass} appearance-none truncate pr-11 disabled:cursor-not-allowed disabled:opacity-70 ${
+            selectedId ? "text-neutral-900" : "text-neutral-400"
+          }`}
         >
-          <span aria-hidden="true">+</span> Add delivery address
-        </button>
-      )}
+          <option value="">{placeholder}</option>
+          {addresses.map((a) => (
+            <option key={a.id} value={a.id} className="text-neutral-900">
+              {addressLine(a)}
+            </option>
+          ))}
+        </select>
+        <ChevronDownIcon className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-neutral-700" />
+      </div>
 
-      {error && !editing && (
-        <p role="alert" className="mt-2 text-xs text-red-600">
+      {error && (
+        <p id="cart-address-error" role="alert" className="mt-2 text-xs text-red-600">
           {error}
         </p>
       )}
+
+      <Link
+        href="/account?tab=address"
+        onClick={closeDialog}
+        className="mt-3 inline-flex h-10 items-center gap-2 rounded-lg bg-[#e6f3e4] px-4 text-sm font-medium text-luxol-green transition hover:brightness-95"
+      >
+        <span aria-hidden="true">+</span> Add Address
+      </Link>
     </div>
   );
 }

@@ -22,10 +22,6 @@ import { siteConfig } from "@/app/config/site";
 
 const container = "mx-auto w-full max-w-[1240px] px-4 sm:px-6";
 
-/* ------------------------------------------------------------------ */
-/* Search (category select + input)                                    */
-/* ------------------------------------------------------------------ */
-
 function SearchBar({ className = "" }: { className?: string }) {
   const router = useRouter();
   const [category, setCategory] = useState("all");

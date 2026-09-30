@@ -3,7 +3,8 @@ import {
   ProgressDotsIcon,
   XCircleIcon,
 } from "@/app/components/ui/icons";
-import { STATUS_LABEL, type OrderStatus } from "@/app/data/orders-data";
+import { STATUS_LABEL } from "@/app/utils/order";
+import type { OrderStatus } from "@/redux/types";
 
 const STYLES: Record<OrderStatus, string> = {
   "in-progress": "text-luxol-orange",

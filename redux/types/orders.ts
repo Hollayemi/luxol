@@ -74,7 +74,7 @@ export type OrderDetail = {
   discount: number;
   deliveryFee: number;
   total: number;
-  track: TrackStep[];
+  timeline: TrackStep[];
   rating: OrderRating | null;
 
   return: ReturnEligibility

@@ -11,6 +11,7 @@ export function AdminToolbar({
   onExport,
   exportDisabled,
   extra,
+  leading,
 }: {
   search: string;
   onSearchChange: (value: string) => void;
@@ -19,9 +20,13 @@ export function AdminToolbar({
   exportDisabled?: boolean;
   /** Extra controls rendered before Filters/Export, e.g. a status select */
   extra?: ReactNode;
+  /** Rendered before the search box, e.g. the Orders type tabs */
+  leading?: ReactNode;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
+      {leading}
+
       <div className="relative min-w-0 flex-1">
         <AdminIcon
           name="search"

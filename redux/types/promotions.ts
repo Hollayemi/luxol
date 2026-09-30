@@ -7,18 +7,18 @@
  */
 
 /** "Discount Deal" applies automatically; "Coupon Code" needs a code at checkout. */
-export type PromotionType = "discount_deal" | "coupon_code";
+export type PromotionType = "DISCOUNT_DEAL" | "COUPON_CODE";
 
-export type DiscountType = "percentage" | "fixed_amount" | "free_delivery";
+export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_DELIVERY";
 
-export type AppliesTo = "all_orders" | "category" | "specific_products";
+export type AppliesTo = "ALL_ORDERS" | "CATEGORY" | "SPECIFIC_PRODUCTS";
 
 export type PromotionStatus =
-  | "active"
-  | "scheduled"
-  | "inactive"
-  | "expired"
-  | "paused";
+  | "ACTIVE"
+  | "SCHEDULED"
+  | "INACTIVE"
+  | "EXPIRED"
+  | "PAUSED";
 
 /** A product swept into a promotion, shown in the detail drawer's "Products Included" table. */
 export type PromotionProduct = {

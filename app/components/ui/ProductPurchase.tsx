@@ -7,7 +7,10 @@ import {
   MailIcon,
   WhatsAppIcon,
 } from "./icons";
-import { Product } from "@/app/utils/product";
+import { toCartAddDetail } from "@/app/utils/product";
+import { useIsInCart } from "@/redux/hooks";
+import type { ProductVariant } from "@/redux/types/inventory";
+import type { StorefrontProduct } from "@/redux/types";
 
 const MAX_QTY = 99;
 
@@ -43,24 +46,38 @@ export default function ProductPurchase({
   product,
   variants,
 }: {
-  product: Product;
-  variants?: string[];
+  product: StorefrontProduct;
+  variants?: ProductVariant[];
 }) {
-  const [variant, setVariant] = useState<string | undefined>(variants?.[0]);
+  const [variant, setVariant] = useState<ProductVariant | undefined>(variants?.[0]);
   const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
+  // Reflects the real cart for this exact variant, so it stays "Added to
+  // Cart" until the item is actually removed, and switches back if the
+  // person picks a different variant that isn't in the cart yet.
+  const added = useIsInCart(product.id, variant?.label);
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
 
-  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
-      if (addedTimer.current) clearTimeout(addedTimer.current);
       if (noticeTimer.current) clearTimeout(noticeTimer.current);
     };
   }, []);
+
+  // A variant (when there is one) has its own stock and price; otherwise
+  // fall back to the base product.
+  const stock = variant ? variant.stock : product.stock;
+  const outOfStock = stock <= 0;
+  const maxQty = Math.max(1, Math.min(MAX_QTY, stock || MAX_QTY));
+
+  function selectVariant(v: ProductVariant) {
+    setVariant(v);
+    // Quantity resets with the variant since a different variant can have
+    // much less stock than what was picked before.
+    setQuantity(1);
+  }
 
   function flash(message: string) {
     setNotice(message);
@@ -69,14 +86,18 @@ export default function ProductPurchase({
   }
 
   function handleAdd() {
-    // Your cart can listen for this: window.addEventListener("cart:add", ...)
+    if (outOfStock) return;
+    // Works for guests too — CartEvents (AppProviders.tsx) puts this
+    // straight into the local cart; no login required.
     window.dispatchEvent(
-      new CustomEvent("cart:add", { detail: { ...product, quantity, variant } }),
+      new CustomEvent("cart:add", {
+        detail: toCartAddDetail(product, {
+          quantity,
+          variant: variant?.label,
+          price: variant?.unitPrice,
+        }),
+      }),
     );
-
-    setAdded(true);
-    if (addedTimer.current) clearTimeout(addedTimer.current);
-    addedTimer.current = setTimeout(() => setAdded(false), 1500);
   }
 
   function handleSave() {
@@ -128,21 +149,22 @@ export default function ProductPurchase({
             className="mt-4 flex flex-wrap gap-3"
           >
             {variants.map((v) => {
-              const selected = v === variant;
+              const selected = v.id === variant?.id;
               return (
                 <button
-                  key={v}
+                  key={v.id}
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  onClick={() => setVariant(v)}
-                  className={`h-12 rounded-full border px-6 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green ${
+                  disabled={v.stock <= 0}
+                  onClick={() => selectVariant(v)}
+                  className={`h-12 rounded-full border px-6 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green disabled:cursor-not-allowed disabled:opacity-40 ${
                     selected
                       ? "border-luxol-green bg-luxol-green font-medium text-white"
                       : "border-neutral-200 bg-white text-neutral-700 hover:border-luxol-green"
                   }`}
                 >
-                  {v}
+                  {v.label}
                 </button>
               );
             })}
@@ -158,7 +180,7 @@ export default function ProductPurchase({
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              disabled={quantity <= 1}
+              disabled={quantity <= 1 || outOfStock}
               aria-label="Decrease quantity"
               className="flex size-10 items-center justify-center rounded-full bg-neutral-100 text-lg leading-none text-neutral-800 transition hover:bg-neutral-200 disabled:opacity-40"
             >
@@ -173,8 +195,8 @@ export default function ProductPurchase({
             </output>
             <button
               type="button"
-              onClick={() => setQuantity((q) => Math.min(MAX_QTY, q + 1))}
-              disabled={quantity >= MAX_QTY}
+              onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+              disabled={quantity >= maxQty || outOfStock}
               aria-label="Increase quantity"
               className="flex size-10 items-center justify-center rounded-full bg-neutral-100 text-lg leading-none text-neutral-800 transition hover:bg-neutral-200 disabled:opacity-40"
             >
@@ -185,9 +207,10 @@ export default function ProductPurchase({
           <button
             type="button"
             onClick={handleAdd}
-            className="h-14 rounded-lg bg-luxol-green px-9 text-sm font-medium text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green"
+            disabled={outOfStock}
+            className="h-14 rounded-lg bg-luxol-green px-9 text-sm font-medium text-white transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-green disabled:cursor-not-allowed disabled:bg-neutral-300"
           >
-            {added ? "Added to Cart" : "Add to Cart"}
+            {outOfStock ? "Out of Stock" : added ? "Added to Cart" : "Add to Cart"}
           </button>
 
           <button
@@ -199,6 +222,10 @@ export default function ProductPurchase({
             {saved ? "Saved" : "Save For Later"}
           </button>
         </div>
+
+        {!outOfStock && product.reorderLevel > 0 && stock <= product.reorderLevel && (
+          <p className="mt-3 text-sm text-amber-600">Only {stock} left in stock</p>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-4 border-t border-neutral-200 pt-8">

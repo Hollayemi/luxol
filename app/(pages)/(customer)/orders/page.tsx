@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTabForOrder, type OrdersTab } from "@/app/data/orders-data";
 import OrdersClient from "./OrdersClient";
+import { OrdersTab } from "@/app/utils/order";
 
 export const metadata: Metadata = {
   title: "My Orders | Luxol Supermarket",
@@ -22,11 +22,8 @@ export default async function OrdersPage({
 }) {
   const sp = await searchParams;
   const orderId = first(sp.order);
-
-  const tabFromOrder = orderId ? getTabForOrder(orderId) : undefined;
   const tabParam = first(sp.tab);
-  const initialTab: OrdersTab =
-    tabFromOrder ?? (tabParam === "cancelled" ? "cancelled" : "orders");
+  const initialTab: OrdersTab = tabParam === "cancelled" ? "cancelled" : "orders";
 
   return (
     <div>
@@ -58,10 +55,7 @@ export default async function OrdersPage({
       </section>
 
       <div className={`${container} py-10 sm:py-14`}>
-        <OrdersClient
-          initialTab={initialTab}
-          initialOrderId={orderId && tabFromOrder ? orderId : undefined}
-        />
+        <OrdersClient initialTab={initialTab} initialOrderId={orderId} />
       </div>
     </div>
   );
