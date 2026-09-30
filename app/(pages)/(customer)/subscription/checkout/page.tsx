@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { MEMBERSHIP_PLANS } from "@/app/data/subscription-data";
+import { redirect } from "next/navigation";
 import CheckoutClient from "./CheckoutClient";
 
 export const metadata: Metadata = {
@@ -22,10 +21,11 @@ export default async function SubscriptionCheckoutPage({
   searchParams: SearchParams;
 }) {
   const sp = await searchParams;
-  const planId = first(sp.plan);
-  const plan = MEMBERSHIP_PLANS.find((p) => p.id === planId);
+  const planSlug = first(sp.plan);
 
-  if (!plan) notFound();
+  // No plan chosen: send them to pick one. Whether the plan exists (and is
+  // still on sale) is checked against the API by CheckoutClient.
+  if (!planSlug) redirect("/subscription");
 
   return (
     <div>
@@ -51,7 +51,7 @@ export default async function SubscriptionCheckoutPage({
       </section>
 
       <div className={`${container} py-10 sm:py-14`}>
-        <CheckoutClient plan={plan} />
+        <CheckoutClient planSlug={planSlug} />
       </div>
     </div>
   );

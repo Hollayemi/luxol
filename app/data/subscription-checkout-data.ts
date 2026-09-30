@@ -1,28 +1,9 @@
-import type { ComponentType, SVGProps } from "react";
-import { ChickenIcon, CowIcon, GoatIcon, MixedMeatIcon } from "@/app/components/ui/icons";
+import type { MembershipProteinShare } from "@/redux/types";
 
-/* ------------------------------------------------------------------ */
-/* Protein supply — selectable, each with a % share of the weekly mix  */
-/* ------------------------------------------------------------------ */
-
-export type ProteinOption = {
-  id: string;
-  name: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  tint: string;
-};
-
-export const PROTEIN_OPTIONS: ProteinOption[] = [
-  { id: "chicken", name: "Chicken", icon: ChickenIcon, tint: "bg-amber-50 text-amber-700" },
-  { id: "cow-beef", name: "Cow Beef", icon: CowIcon, tint: "bg-red-50 text-red-700" },
-  { id: "goat-meat", name: "Goat Meat", icon: GoatIcon, tint: "bg-orange-50 text-orange-700" },
-  {
-    id: "assorted-meats",
-    name: "Assorted Meats",
-    icon: MixedMeatIcon,
-    tint: "bg-rose-50 text-rose-700",
-  },
-];
+/*
+ * The weekly protein mix maths. The proteins themselves, the delivery
+ * frequencies, days and windows come from the API (membershipApi.ts).
+ */
 
 /** id -> percentage share; keys present = selected, values always sum to 100. */
 export type Allocation = Record<string, number>;
@@ -109,26 +90,7 @@ export function canIncrease(current: Allocation, id: string): boolean {
   return others.some((k) => current[k] > MIN_SHARE);
 }
 
-/* ------------------------------------------------------------------ */
-/* Delivery scheduling                                                 */
-/* ------------------------------------------------------------------ */
-
-export type DeliveryFrequency = { id: string; label: string; deliveriesPerMonth: number };
-
-export const DELIVERY_FREQUENCIES: DeliveryFrequency[] = [
-  { id: "weekly", label: "Weekly", deliveriesPerMonth: 4 },
-  { id: "biweekly", label: "Every 2 weeks", deliveriesPerMonth: 2 },
-  { id: "monthly", label: "Monthly", deliveriesPerMonth: 1 },
-];
-
-export const DELIVERY_DAYS = [
-  "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
-] as const;
-
-export const DELIVERY_WINDOWS = [
-  "8:00 AM – 10:00 AM",
-  "10:00 AM – 12:00 PM",
-  "12:00 PM – 2:00 PM",
-  "2:00 PM – 4:00 PM",
-  "4:00 PM – 6:00 PM",
-] as const;
+/** Allocation -> the { proteinId, percentage } list the API expects. */
+export function toMix(allocation: Allocation): MembershipProteinShare[] {
+  return Object.entries(allocation).map(([proteinId, percentage]) => ({ proteinId, percentage }));
+}

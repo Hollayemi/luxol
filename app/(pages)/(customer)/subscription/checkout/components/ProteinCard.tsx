@@ -1,7 +1,8 @@
 "use client";
 
-import { CheckCircleIcon } from "@/app/components/ui/icons";
-import type { Allocation, ProteinOption } from "@/app/data/subscription-checkout-data";
+import { CheckCircleIcon, MixedMeatIcon } from "@/app/components/ui/icons";
+import type { Allocation } from "@/app/data/subscription-checkout-data";
+import type { MembershipProtein } from "@/redux/types";
 
 export default function ProteinCard({
   protein,
@@ -11,14 +12,13 @@ export default function ProteinCard({
   canDecrease,
   canIncrease,
 }: {
-  protein: ProteinOption;
+  protein: MembershipProtein;
   allocation: Allocation;
   onToggle: () => void;
   onAdjust: (delta: number) => void;
   canDecrease: boolean;
   canIncrease: boolean;
 }) {
-  const Icon = protein.icon;
   const selected = protein.id in allocation;
   const percent = allocation[protein.id];
 
@@ -34,12 +34,25 @@ export default function ProteinCard({
         </span>
       )}
 
-      <div className={`flex h-28 items-center justify-center ${protein.tint}`}>
-        <Icon className="size-12" />
+      <div className="flex h-28 items-center justify-center bg-neutral-100 text-neutral-400">
+        {protein.image ? (
+          // Uploaded by staff on the admin Membership page (any host, so not next/image)
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={protein.image} alt={protein.label} className="size-full object-cover" />
+        ) : (
+          <MixedMeatIcon className="size-12" />
+        )}
       </div>
 
       <div className="flex flex-col gap-3 p-4">
-        <p className="text-sm font-bold text-neutral-900">{protein.name}</p>
+        <div>
+          <p className="text-sm font-bold text-neutral-900">{protein.label}</p>
+          {protein.description && (
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
+              {protein.description}
+            </p>
+          )}
+        </div>
 
         {selected ? (
           <div className="flex items-center gap-2">
@@ -55,7 +68,7 @@ export default function ProteinCard({
                 type="button"
                 onClick={() => onAdjust(-1)}
                 disabled={!canDecrease}
-                aria-label={`Decrease ${protein.name} share`}
+                aria-label={`Decrease ${protein.label} share`}
                 className="flex size-7 items-center justify-center rounded-full text-sm leading-none text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-30"
               >
                 −
@@ -67,7 +80,7 @@ export default function ProteinCard({
                 type="button"
                 onClick={() => onAdjust(1)}
                 disabled={!canIncrease}
-                aria-label={`Increase ${protein.name} share`}
+                aria-label={`Increase ${protein.label} share`}
                 className="flex size-7 items-center justify-center rounded-full text-sm leading-none text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-30"
               >
                 +

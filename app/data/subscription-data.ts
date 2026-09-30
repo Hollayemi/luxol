@@ -1,6 +1,9 @@
 /**
- * Data for the /subscription (membership) page — same plain
- * types + mock data + helper pattern as app/data/orders-data.ts.
+ * Static copy for the /subscription (membership) page.
+ *
+ * Plans, proteins and delivery options are NOT here: they come from the API
+ * (redux/slices/membershipApi.ts) so they always match what staff set up on
+ * the admin Membership page.
  */
 
 export type HowItWorksStep = {
@@ -31,56 +34,6 @@ export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
   },
 ];
 
-export type MembershipPlan = {
-  id: string;
-  name: string;
-  /** Monthly price in NGN. */
-  price: number;
-  description: string;
-  supply: string[];
-  href: string;
-};
-
-export const MEMBERSHIP_PLANS: MembershipPlan[] = [
-  {
-    id: "silver",
-    name: "Silver",
-    price: 30000,
-    description: "For individuals and smaller households",
-    supply: ["Beef", "Assorted meat"],
-    href: "/subscription/checkout?plan=silver",
-  },
-  {
-    id: "gold",
-    name: "Gold",
-    price: 50000,
-    description: "For households that want more variety",
-    supply: ["Premium beef", "Goat meat", "Chicken"],
-    href: "/subscription/checkout?plan=gold",
-  },
-  {
-    id: "family",
-    name: "Family",
-    price: 200000,
-    description: "For larger households to get more varieties.",
-    supply: ["Mixed proteins", "Larger household quantities", "Priority delivery"],
-    href: "/subscription/checkout?plan=family",
-  },
-  {
-    id: "business",
-    name: "Business",
-    price: 500000,
-    description: "For restaurants, caterers and food businesses",
-    supply: [
-      "High-volume protein supply",
-      "Regular scheduled deliveries",
-      "Priority fulfilment",
-      "Business-focused pricing",
-    ],
-    href: "/subscription/checkout?plan=business",
-  },
-];
-
 export const FLEXIBILITY_POINTS: string[] = [
   "Pause your membership when you need a break.",
   "Skip an upcoming delivery when you don't need one.",
@@ -100,3 +53,9 @@ const priceFmt = new Intl.NumberFormat("en-NG", {
 export function formatPlanPrice(amount: number): string {
   return priceFmt.format(amount);
 }
+
+/** "week" -> "weekly": for "Recurring monthly subscription". */
+export const INTERVAL_ADJECTIVE = { week: "weekly", month: "monthly", year: "yearly" } as const;
+
+/** "month" -> "month": for "/ month" and "one month from today". */
+export const INTERVAL_UNIT = { week: "week", month: "month", year: "year" } as const;

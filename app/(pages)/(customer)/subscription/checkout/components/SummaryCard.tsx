@@ -1,5 +1,10 @@
 import { CheckCircleIcon, TruckIcon } from "@/app/components/ui/icons";
-import { formatPlanPrice, type MembershipPlan } from "@/app/data/subscription-data";
+import {
+  INTERVAL_ADJECTIVE,
+  INTERVAL_UNIT,
+  formatPlanPrice,
+} from "@/app/data/subscription-data";
+import type { MembershipPlan } from "@/redux/types";
 
 export default function SummaryCard({
   plan,
@@ -24,7 +29,7 @@ export default function SummaryCard({
           <p className="text-lg font-bold text-neutral-900">{formatPlanPrice(plan.price)}</p>
         </div>
         <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-          Recurring monthly subscription
+          Recurring {INTERVAL_ADJECTIVE[plan.interval]} subscription
         </p>
 
         <hr className="my-4 border-neutral-200/70" />
@@ -43,7 +48,7 @@ export default function SummaryCard({
 
       <dl className="mt-5 flex flex-col divide-y divide-neutral-200">
         <div className="flex items-center justify-between py-3 text-sm">
-          <dt className="text-neutral-500">Monthly Plan Fee</dt>
+          <dt className="text-neutral-500 capitalize">{INTERVAL_ADJECTIVE[plan.interval]} Plan Fee</dt>
           <dd className="font-semibold text-neutral-900">{formatPlanPrice(plan.price)}</dd>
         </div>
         <div className="flex items-center justify-between py-3 text-sm">
@@ -67,7 +72,7 @@ export default function SummaryCard({
 
       <p className="mt-4 flex items-start gap-2 rounded-xl bg-white p-3 text-xs leading-relaxed text-neutral-500">
         <CheckCircleIcon className="mt-0.5 size-3.5 shrink-0 text-neutral-300" />
-        Your next automated billing date will be exactly one month from today.
+        Your next automated billing date will be exactly one {INTERVAL_UNIT[plan.interval]} from today.
         To be confirmed upon successful payment.
       </p>
     </aside>

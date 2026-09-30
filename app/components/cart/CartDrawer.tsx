@@ -458,7 +458,7 @@ function CartRow({ item }: { item: CartItem }) {
  * address book they manage on /account?tab=address), with an "Add Address"
  * link underneath for creating a new one.
  */
-function AddressSection({
+export function AddressSection({
   selectedId,
   error,
   onSelect,

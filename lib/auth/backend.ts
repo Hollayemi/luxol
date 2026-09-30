@@ -22,8 +22,8 @@ async function post(url: string, body: unknown): Promise<AuthPayload | null> {
 }
 
 /** Email + password sign in. Returns null when the credentials are wrong. */
-export function loginWithCredentials(email: string, password: string, type: any = 'customer') {
-  return post(API_ROUTES.auth.login, { email, password, type });
+export function loginWithCredentials(email: string, password: string) {
+  return post(API_ROUTES.auth.login, { email, password });
 }
 
 /** Exchanges the Google ID token for the backend's own access token. */
