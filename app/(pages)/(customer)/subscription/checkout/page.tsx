@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import CheckoutClient from "./CheckoutClient";
+import ConfirmationClient from "./ConfirmationClient";
 
 export const metadata: Metadata = {
   title: "Membership Subscription | Luxol Supermarket",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 const container = "mx-auto w-full max-w-[1240px] px-4 sm:px-6";
 
-type SearchParams = Promise<{ plan?: string | string[] }>;
+type SearchParams = Promise<{ plan?: string | string[]; subscription?: string | string[] }>;
 
 function first(v?: string | string[]) {
   return Array.isArray(v) ? v[0] : v;
@@ -22,10 +23,12 @@ export default async function SubscriptionCheckoutPage({
 }) {
   const sp = await searchParams;
   const planSlug = first(sp.plan);
+  // The payment provider returns the customer here with ?subscription=<id>
+  const subscriptionId = first(sp.subscription);
 
   // No plan chosen: send them to pick one. Whether the plan exists (and is
   // still on sale) is checked against the API by CheckoutClient.
-  if (!planSlug) redirect("/subscription");
+  if (!planSlug && !subscriptionId) redirect("/subscription");
 
   return (
     <div>
@@ -51,7 +54,11 @@ export default async function SubscriptionCheckoutPage({
       </section>
 
       <div className={`${container} py-10 sm:py-14`}>
-        <CheckoutClient planSlug={planSlug} />
+        {subscriptionId ? (
+          <ConfirmationClient subscriptionId={subscriptionId} />
+        ) : (
+          <CheckoutClient planSlug={planSlug!} />
+        )}
       </div>
     </div>
   );

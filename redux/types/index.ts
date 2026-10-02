@@ -11,3 +11,6 @@ export * from "./users"
 export * from "./adminOrders"
 export * from "./adminCustomers"
 export * from './adminMembership'
+export * from './adminDeliveries'
+export * from './adminOverview'
+export * from './adminSettings'

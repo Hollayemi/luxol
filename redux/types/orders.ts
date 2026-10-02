@@ -9,7 +9,7 @@
  * close to a drop-in rename rather than a redesign.
  */
 
-export type OrderStatus = "in-progress" | "completed" | "cancelled" | "returned";
+export type OrderStatus = "in-progress" | "completed" | "cancelled" | "returned" | 'delivered';
 export type DeliveryType = "Delivery" | "Pickup";
 
 export type OrderItem = {

@@ -32,6 +32,7 @@ function RatingBlock({
   onSubmitRating: (stars: number, comment: string) => void;
   isRating?: boolean;
 }) {
+  console.log({isRating})
   const [stars, setStars] = useState(0);
   const [comment, setComment] = useState("");
 
@@ -95,6 +96,7 @@ function Step({
   onSubmitRating: (stars: number, comment: string) => void;
   isRating?: boolean;
 }) {
+  console.log({step})
   const month = formatStepMonth(step.occurredAt);
   const day = formatStepDay(step.occurredAt);
   const time = formatStepTime(step.occurredAt);
@@ -126,7 +128,7 @@ function Step({
         </div>
         <p className={`mt-0.5 text-xs ${DESC_STYLES[step.state]}`}>{step.description}</p>
 
-        {step.id === "rate" && (
+        {step.id.toLowerCase() === "rate" && (
           <RatingBlock order={order} onSubmitRating={onSubmitRating} isRating={isRating} />
         )}
       </div>

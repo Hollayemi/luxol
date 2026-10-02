@@ -9,13 +9,14 @@ import type { OrderStatus } from "@/redux/types";
 const STYLES: Record<OrderStatus, string> = {
   "in-progress": "text-luxol-orange",
   completed: "text-luxol-green",
+  delivered: "text-luxol-green",
   cancelled: "text-red-500",
   returned: "text-red-500",
 };
 
 function StatusIcon({ status, className }: { status: OrderStatus; className?: string }) {
   if (status === "in-progress") return <ProgressDotsIcon className={className} />;
-  if (status === "completed") return <CheckCircleIcon className={className} />;
+  if (status === "delivered") return <CheckCircleIcon className={className} />;
   return <XCircleIcon className={className} />;
 }
 

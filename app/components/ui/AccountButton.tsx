@@ -42,7 +42,7 @@ export default function AccountButton({
       <details className="group relative">
         <summary
           className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-white transition hover:text-luxol-orange [&::-webkit-details-marker]:hidden"
-          aria-label={`Account, ${firstName}`}
+          aria-label={`Account, ${name}`}
         >
           <UserIcon className="h-5 w-5" />
         </summary>

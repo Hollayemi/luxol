@@ -31,7 +31,10 @@ const baseApi = createApi({
     "MembershipPlan",
     "MembershipProtein",
     "MembershipOptions",
-    "MySubscription"
+    "MySubscription",
+    "AdminDelivery",
+    "AdminOverview",
+    "AdminTopProducts"
   ],
   endpoints: () => ({}),
 });

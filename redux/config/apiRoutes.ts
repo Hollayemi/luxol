@@ -28,7 +28,7 @@ export const API_ROUTES = {
     categories: "/admin/inventory/categories",
     category: (id: string) => `/admin/inventory/categories/${id}`,
   },
-   cart: {
+  cart: {
     validatePromo: "/promo-codes/validate",
     deliveryMethods: "/delivery-methods",
     get: "/cart",
@@ -43,7 +43,7 @@ export const API_ROUTES = {
     pause: (id: string) => `/admin/promotions/${id}/pause`,
     resume: (id: string) => `/admin/promotions/${id}/resume`,
   },
-   membership: {
+  membership: {
     plans: "/membership/plans",
     plan: (slugOrId: string) => `/membership/plans/${slugOrId}`,
     proteins: "/membership/proteins",
@@ -64,11 +64,15 @@ export const API_ROUTES = {
     status: (id: string) => `/admin/orders/${id}/status`,
     cancel: (id: string) => `/admin/orders/${id}/cancel`,
   },
-   adminCustomers: {
+  adminCustomers: {
     stats: "/admin/customers/stats",
     list: "/admin/customers",
     detail: (id: string) => `/admin/customers/${id}`,
     status: (id: string) => `/admin/customers/${id}/status`,
+  },
+  adminOverview: {
+    summary: "/admin/overview",
+    topProducts: "/admin/overview/top-products",
   },
   adminMembership: {
     stats: "/admin/membership/stats",
