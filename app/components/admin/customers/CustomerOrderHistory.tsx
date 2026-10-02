@@ -30,7 +30,6 @@ export function CustomerOrderHistory({ customerId, customerName }: CustomerOrder
   const [limit, setLimit] = useState(PAGE_STEP);
 
   const { currentData, isFetching, isError, error, refetch } = useListAdminOrdersQuery({
-    customerId,
     status: status || undefined,
     page: 1,
     perPage: limit,

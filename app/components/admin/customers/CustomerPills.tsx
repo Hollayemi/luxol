@@ -55,7 +55,7 @@ export type HistoryPaymentPillProps = { status: AdminOrderPaymentStatus };
 
 /** "Paid" / "Failed" in the customer's Order History. */
 export function HistoryPaymentPill({ status }: HistoryPaymentPillProps) {
-  const failed = status === "failed";
+  const failed = status === "FAILED" || status === "REFUNDED";
   return (
     <span
       className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${

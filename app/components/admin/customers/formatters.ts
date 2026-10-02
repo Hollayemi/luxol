@@ -24,17 +24,17 @@ export const MEMBERSHIP_STATUS_LABELS: Record<AdminMembershipStatus, string> = {
 
 /** The Type column in the customer's Order History. */
 export const ORDER_TYPE_LABELS: Record<AdminOrderType, string> = {
-  shop: "Shop",
-  meat_box: "Meat Box",
-  freezer_planner: "Freezer Planner",
+  SHOP: "SHOP",
+  MEAT_BOX: "Meat Box",
+  FREEZER_PLANNER: "Freezer Planner",
 };
 
 /** The Payment column in Order History says "Paid" where the order drawer says "Success". */
 export const HISTORY_PAYMENT_LABELS: Record<AdminOrderPaymentStatus, string> = {
-  success: "Paid",
-  pending: "Pending",
-  failed: "Failed",
-  refunded: "Refunded",
+  SUCCESS: "",
+  PENDING: "Pending",
+  FAILED: "Failed",
+  REFUNDED: "Refunded",
 };
 
 export const INTERVAL_LABELS = { week: "week", month: "month", year: "year" } as const;

@@ -45,7 +45,8 @@ export const authOptions: NextAuthOptions = {
 
         if (!email || !password) return null;
 
-        const result =  await loginWithCredentials(email, password, credentials?.type);
+        
+        const result = await loginWithCredentials(email, password);
 
         if (!result) return null;
 

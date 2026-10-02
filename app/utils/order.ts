@@ -70,4 +70,5 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   completed: "Completed",
   cancelled: "Cancelled",
   returned: "Returned",
+  delivered: "Delivered",
 };
