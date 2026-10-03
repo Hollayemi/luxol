@@ -26,7 +26,7 @@ export function InviteUserDialog({ close }: InviteUserDialogProps) {
     if (!valid || isLoading) return;
     setError("");
     try {
-      await invite({ email: email.trim(), role }).unwrap();
+      await invite({ email: email.trim(), role: role.toUpperCase() }).unwrap();
       notify.success("Invite sent", { message: `An invitation link was emailed to ${email.trim()}.` });
       close();
     } catch (err) {
