@@ -79,27 +79,27 @@ function ProductRow({ product }: { product: Product }) {
               <AdminIcon name="package" className="size-4 text-neutral-400" />
             )}
           </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-neutral-900">{product.name}</p>
+          <div className="min-w-40">
+            <p className=" text-sm font-medium text-neutral-900 w-40">{product.name}</p>
             <p className="text-xs text-neutral-400">{product.productId}</p>
           </div>
         </div>
       </td>
-      <td className="py-4 pr-4">
+      <td className="py-4 pr-4 w-60">
         <p className="text-sm text-neutral-900">{product.category.name}</p>
         <p className="text-xs text-neutral-400">{product.sku}</p>
       </td>
-      <td className="py-4 pr-4 text-sm text-neutral-900">
+      <td className="py-4 pr-4 w-40 text-sm text-neutral-900">
         {formatNaira(product.unitPrice)}/{product.unitType}
       </td>
-      <td className="py-4 pr-4 text-sm text-neutral-900">
+      <td className="py-4 pr-4 w-40 text-sm text-neutral-900">
         {product.stock} {product.unitType}
       </td>
-      <td className="py-4 pr-4 text-sm text-neutral-900">
+      <td className="py-4 pr-4 w-40 text-sm text-neutral-900">
         {product.reorderLevel} {product.unitType}
       </td>
-      <td className="py-4 pr-4 text-sm text-neutral-500">{formatUpdatedAt(product.updatedAt)}</td>
-      <td className="py-4 pr-4">
+      <td className="py-4 pr-4 w-40 text-sm text-neutral-500">{formatUpdatedAt(product.updatedAt)}</td>
+      <td className="py-4 pr-4 w-40">
         <StockStatusPill status={product.status} />
       </td>
       <td className="py-4">

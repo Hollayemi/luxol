@@ -16,20 +16,23 @@ export function StatCard({
 }) {
   if (loading) {
     return (
-      <div className="flex-1 space-y-2 px-6 py-1 first:pl-0 last:pr-0">
+      <div className="flex-1 space-y-3 p-6">
         <div className="h-7 w-16 animate-pulse rounded bg-neutral-100" />
         <div className="h-4 w-24 animate-pulse rounded bg-neutral-100" />
+        <div className="h-3 w-20 animate-pulse rounded bg-neutral-100" />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 px-6 text-center first:pl-0 last:pr-0 sm:text-left">
-      <p className="text-2xl font-bold text-neutral-900 sm:text-[28px]">{value}</p>
-      <p className="mt-1 text-sm text-neutral-500">{label}</p>
+    <div className="flex-1 p-6 text-center sm:text-left">
+      <p className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-[28px]">
+        {value}
+      </p>
+      <p className="mt-1.5 text-sm text-neutral-500">{label}</p>
       {change && (
         <p
-          className={`mt-1.5 flex items-center justify-center gap-1 text-xs font-medium sm:justify-start ${
+          className={`mt-2 inline-flex items-center justify-center gap-1 text-xs font-medium sm:justify-start ${
             trend === "down" ? "text-red-600" : "text-emerald-600"
           }`}
         >
@@ -40,11 +43,10 @@ export function StatCard({
     </div>
   );
 }
-
 /** The white card that holds a row of StatCards, divided by vertical rules. */
 export function StatCardRow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col divide-y divide-neutral-100 rounded-2xl border border-neutral-100 bg-white sm:flex-row sm:divide-x sm:divide-y-0">
+    <div className="grid grid-cols-2 divide-x divide-y divide-neutral-100 rounded-2xl border border-neutral-100 bg-white sm:flex sm:flex-row sm:divide-y-0">
       {children}
     </div>
   );

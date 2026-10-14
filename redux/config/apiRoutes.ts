@@ -24,7 +24,7 @@ export const API_ROUTES = {
     create: "/admin/inventory",
     stats: "/admin/inventory/stats",
     products: "/admin/inventory",
-    product: (id: string) => `/admin/inventory/products/${id}`,
+    product: (id: string) => `/admin/inventory/${id}`,
     categories: "/admin/inventory/categories",
     category: (id: string) => `/admin/inventory/categories/${id}`,
   },
@@ -56,6 +56,13 @@ export const API_ROUTES = {
     changePlan: (id: string) => `/membership/subscriptions/${id}/plan`,
     updateMix: (id: string) => `/membership/subscriptions/${id}/mix`,
     cancel: (id: string) => `/membership/subscriptions/${id}/cancel`,
+  },
+  meatBox: {
+    options: "/meat-box/options",
+    orders: "/meat-box/orders",
+    order: (id: string) => `/meat-box/orders/${id}`,
+    place: (id: string) => `/meat-box/orders/${id}/place`,
+    cancel: (id: string) => `/meat-box/orders/${id}/cancel`,
   },
   adminOrders: {
     stats: "/admin/orders/stats",

@@ -32,6 +32,8 @@ const baseApi = createApi({
     "MembershipProtein",
     "MembershipOptions",
     "MySubscription",
+    "MeatBoxOptions",
+    "MeatBoxOrder",
     "AdminDelivery",
     "AdminOverview",
     "AdminTopProducts"

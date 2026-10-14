@@ -97,7 +97,7 @@ export function ProductFormDialog({
 
     try {
       if (product) {
-        await updateProduct({ id: product.id, ...body }).unwrap();
+        await updateProduct({ id: product.id, ...body, stock: Number(stock)  }).unwrap();
         notify.success("Product updated", { message: `"${name}" was saved.` });
       } else {
         await createProduct({ ...body, stock: Number(stock) }).unwrap();
@@ -164,7 +164,7 @@ export function ProductFormDialog({
               label="Category"
               value={categoryId}
               onChange={setCategoryId}
-              options={categories.map((c: any) => ({ label: c.name, value: c.id }))}
+              options={categories.map((c) => ({ label: c.name, value: c.id }))}
               placeholder={categoriesLoading ? "Loading categories..." : "Select the category"}
               disabled={categoriesLoading}
             />
@@ -211,7 +211,7 @@ export function ProductFormDialog({
               onChange={setWeight}
               placeholder="Enter the weight of the item (optional)"
             />
-            {product ? (
+            {product && (
               <TextField
                 label="Reorder Level"
                 type="number"
@@ -220,9 +220,9 @@ export function ProductFormDialog({
                 onChange={setReorderLevel}
                 placeholder="Enter the reorder level"
               />
-            ) : (
+            )} 
               <TextField
-                label="Initial Stock Amount"
+                label={`${!product ? "Initial" : "Update"} Stock Amount`}
                 type="number"
                 min={0}
                 value={stock}
@@ -230,7 +230,7 @@ export function ProductFormDialog({
                 placeholder="Enter the stock amount"
                 required
               />
-            )}
+            
             <SelectField
               label="Product Status"
               hint="Active products are visible and available for purchase."
