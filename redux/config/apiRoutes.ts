@@ -71,6 +71,14 @@ export const API_ROUTES = {
     status: (id: string) => `/admin/orders/${id}/status`,
     cancel: (id: string) => `/admin/orders/${id}/cancel`,
   },
+  adminMeatBox: {
+    stats: "/admin/meat-box/stats",
+    list: "/admin/meat-box/orders",
+    detail: (id: string) => `/admin/meat-box/orders/${id}`,
+    price: (id: string) => `/admin/meat-box/orders/${id}/price`,
+    status: (id: string) => `/admin/meat-box/orders/${id}/status`,
+    cancel: (id: string) => `/admin/meat-box/orders/${id}/cancel`,
+  },
   adminCustomers: {
     stats: "/admin/customers/stats",
     list: "/admin/customers",
