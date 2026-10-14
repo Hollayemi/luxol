@@ -24,6 +24,7 @@ const baseApi = createApi({
     "AdminOrderStats",
     "AdminMeatBoxOrder",
     "AdminMeatBoxStats",
+    "AdminMeatBoxCatalogue",
     "AdminCustomer",
     "AdminCustomerStats",
     "AdminMembershipStats",

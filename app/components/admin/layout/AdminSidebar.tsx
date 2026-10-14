@@ -150,7 +150,11 @@ export default function AdminSidebar({
           <ul className="space-y-1">
             {adminNav.features.map((item) => (
               <li key={item.href}>
-                <NavLink item={item} active={false} onNavigate={onClose} />
+                <NavLink
+                  item={item}
+                  active={!item.external && isNavActive(pathname, item.href)}
+                  onNavigate={onClose}
+                />
               </li>
             ))}
           </ul>

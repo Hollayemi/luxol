@@ -19,7 +19,6 @@ export const adminNav = {
     { label: "Overview", href: "/admin", icon: "overview" },
     // TODO: feed the badge from the real number of orders needing attention
     { label: "Orders", href: "/admin/orders", icon: "orders", badge: 0 },
-    { label: "Meat Box Orders", href: "/admin/meat-box", icon: "meatBox" },
     { label: "Customers", href: "/admin/customers", icon: "customers" },
     { label: "Inventory", href: "/admin/inventory", icon: "inventory" },
     { label: "Promotions", href: "/admin/promotions", icon: "promotions" },
@@ -28,7 +27,7 @@ export const adminNav = {
     { label: "Membership", href: "/admin/membership", icon: "membership" },
   ],
   features: [
-    { label: "Meat Box", href: "/meat-box", icon: "meatBox", external: true },
+    { label: "Meat Box", href: "/admin/meat-box", icon: "meatBox" },
     {
       label: "Freezer Planner",
       href: "/freezer-planner",

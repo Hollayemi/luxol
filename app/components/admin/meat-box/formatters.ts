@@ -1,5 +1,6 @@
 import { formatNaira } from "@/app/utils/product";
 import type {
+  AdminMeatBoxOption,
   AdminMeatBoxOrderItem,
   AdminMeatBoxOrderSummary,
   AdminMeatBoxPaymentStatus,
@@ -100,6 +101,32 @@ export function getAmountLabel(order: Pick<AdminMeatBoxOrderSummary, "confirmedT
   if (order.confirmedTotal != null) return { text: formatNaira(order.confirmedTotal), estimated: false };
   if (order.estimatedTotal) return { text: `Est. ${formatPriceRange(order.estimatedTotal)}`, estimated: true };
   return { text: "-", estimated: true };
+}
+
+/* ------------------------------------------------------------------ */
+/* Catalogue (options)                                                 */
+/* ------------------------------------------------------------------ */
+
+export const MEAT_BOX_UNIT_LABELS: Record<AdminMeatBoxUnit, string> = {
+  ANIMAL: "Per animal",
+  KG: "Per kg",
+};
+
+/** A range only exists when both ends are set. */
+export function toRange(min: number | null, max: number | null): MeatBoxRange | null {
+  return min != null && max != null ? { min, max } : null;
+}
+
+/** "45 - 55kg" for one unit of an option, or "-" when there's no estimate. */
+export function formatOptionWeight(option: Pick<AdminMeatBoxOption, "estimatedMinKg" | "estimatedMaxKg">) {
+  const range = toRange(option.estimatedMinKg, option.estimatedMaxKg);
+  return range ? formatWeightRange(range) : "-";
+}
+
+/** "₦50,000 - ₦60,000" for one unit of an option, or "-" when there's no estimate. */
+export function formatOptionPrice(option: Pick<AdminMeatBoxOption, "estimatedMinPrice" | "estimatedMaxPrice">) {
+  const range = toRange(option.estimatedMinPrice, option.estimatedMaxPrice);
+  return range ? formatPriceRange(range) : "-";
 }
 
 /* ------------------------------------------------------------------ */

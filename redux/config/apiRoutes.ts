@@ -78,6 +78,10 @@ export const API_ROUTES = {
     price: (id: string) => `/admin/meat-box/orders/${id}/price`,
     status: (id: string) => `/admin/meat-box/orders/${id}/status`,
     cancel: (id: string) => `/admin/meat-box/orders/${id}/cancel`,
+    categories: "/admin/meat-box/categories",
+    category: (id: string) => `/admin/meat-box/categories/${id}`,
+    options: "/admin/meat-box/options",
+    option: (id: string) => `/admin/meat-box/options/${id}`,
   },
   adminCustomers: {
     stats: "/admin/customers/stats",
