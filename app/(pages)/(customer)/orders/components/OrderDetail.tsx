@@ -80,7 +80,7 @@ export default function OrderDetail({
       <div className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 rounded-2xl bg-neutral-100/70 p-5 sm:grid-cols-2">
         <InfoCell label="Order ID">
           <span className="inline-flex items-center gap-1.5">
-            {formatOrderId(order)}
+            {order.orderNumber}
             <CopyOrderId order={order} />
           </span>
         </InfoCell>

@@ -53,6 +53,7 @@ export type OrderRating = {
 export type OrderSummary = {
   id: string;
   placedAt: string;
+  orderNumber: string;
   status: OrderStatus;
   deliveryType: DeliveryType;
   itemsCount: number;
@@ -66,6 +67,7 @@ export type OrderDetail = {
   status: OrderStatus;
   deliveryType: DeliveryType;
   receiverPhone: string;
+  orderNumber: string;
   deliveryAddress: string;
   email: string;
   items: OrderItem[];

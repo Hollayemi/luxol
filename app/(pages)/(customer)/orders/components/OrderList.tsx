@@ -93,7 +93,7 @@ export default function OrderList({
                         selected ? "text-luxol-orange" : "text-neutral-900"
                       }`}
                     >
-                      Order {formatOrderId(order)}
+                      Order {order.orderNumber}
                     </span>
                     <span
                       className={`mt-1 block text-xs ${
