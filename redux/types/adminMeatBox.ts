@@ -1,25 +1,23 @@
 /**
  * Admin Meat Box: the staff-side Meat Box orders page (stats strip, table,
- * and the Order Details drawer with the weight + price form).
+ * and the Order Details drawer).
  *
- * Why this isn't just the Orders page: animal portions (quarter / half /
- * whole) are weighed AFTER the customer orders, so staff have to enter the
- * final weight and price of every line before the customer can pay.
+ * Meat boxes have a fixed price (category price per kg x box weight), so there
+ * is no weighing or price confirmation step: the customer pays when they order
+ * and staff simply move the paid order along.
  *
- *   PENDING_WEIGHING -> staff enter final weight + price per line
- *   PRICE_CONFIRMED  -> price is set, waiting for the customer to pay
+ *   PENDING_PAYMENT  -> order created, waiting for the customer to pay
  *   PROCESSING       -> paid; meat is being cut and packaged
  *   OUT_FOR_DELIVERY -> with the rider
  *   COMPLETED        -> delivered
  *   CANCELLED        -> cancelled by staff or customer
  *
  * Staff move an order along with the same "Update Order Status" /
- * "Cancel Order" actions as the Orders page. Only the timeline is different
- * (it has the weighing / price steps).
+ * "Cancel Order" actions as the Orders page. Only the timeline is different.
  *
  * Named AdminMeatBox* on purpose: meatBox.ts already owns MeatBoxOrder,
- * MeatBoxOrderItem, MeatBoxOrderStatus and MeatBoxUnit for the customer pages
- * (those use lowercase values; these follow the Prisma enums).
+ * MeatBoxOrderItem and MeatBoxOrderStatus for the customer pages (those use
+ * lowercase values; these follow the Prisma enums).
  * Adjust field names here to match the NestJS DTOs; every admin meat box
  * component reads through these types.
  */
@@ -31,7 +29,6 @@ import type {
   AdminOrderStat,
   AdminOrderTimelineEvent,
 } from "./adminOrders";
-import type { MeatBoxRange } from "./meatBox";
 
 /* ------------------------------------------------------------------ */
 /* Enums (mirror the Prisma schema)                                    */
@@ -39,8 +36,7 @@ import type { MeatBoxRange } from "./meatBox";
 
 /** MeatBoxOrderStatus in the schema. */
 export type AdminMeatBoxStatus =
-  | "PENDING_WEIGHING"
-  | "PRICE_CONFIRMED"
+  | "PENDING_PAYMENT"
   | "PROCESSING"
   | "OUT_FOR_DELIVERY"
   | "COMPLETED"
@@ -48,16 +44,13 @@ export type AdminMeatBoxStatus =
 
 /**
  * Statuses staff can move an order to with "Update Order Status".
- * The first two are set by the system (when staff confirm the price, and
- * when the customer pays) and cancelling has its own action.
+ * PENDING_PAYMENT is the starting point and PROCESSING is normally set by the
+ * system when the customer pays. Cancelling has its own action.
  */
 export type AdminMeatBoxUpdatableStatus = Extract<
   AdminMeatBoxStatus,
   "PROCESSING" | "OUT_FOR_DELIVERY" | "COMPLETED"
 >;
-
-/** MeatBoxUnit in the schema. ANIMAL is priced after weighing, KG is per kilo. */
-export type AdminMeatBoxUnit = "ANIMAL" | "KG";
 
 /** Derived from `paidAt` (and any refund) by the backend. */
 export type AdminMeatBoxPaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
@@ -70,21 +63,18 @@ export type AdminMeatBoxPaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
 export type AdminMeatBoxOrderItem = {
   id: string;
   optionId: string;
-  /** Snapshot taken at order time: "Quarter Cow", "Goat Meat by Kg". */
+  /** Snapshot taken at order time: "Full Goat", "Quarter Cow". */
   label: string;
   /** The option's image. */
   image: string | null;
-  unit: AdminMeatBoxUnit;
-  /** Number of animals / portions, or kilos when `unit` is "KG". */
+  /** How many of this box. */
   quantity: number;
-  /** Naira per kg snapshot. Null for ANIMAL. */
-  pricePerKg: number | null;
-  /** Estimated weight of ONE unit (the option's estimatedMinKg / MaxKg). */
-  estimatedWeightKg: MeatBoxRange | null;
-  /** Filled in by staff at weighing. Null until then. */
-  finalWeightKg: number | null;
-  /** Final price of the line, set by staff. Null until then. */
-  lineTotal: number | null;
+  /** Weight of ONE box in kg (snapshot). The line weighs `weightKg` x `quantity`. */
+  weightKg: number;
+  /** Naira per kg (snapshot of the category's price when the order was placed). */
+  pricePerKg: number;
+  /** Price of the whole line in naira: `pricePerKg` x `weightKg` x `quantity`. */
+  lineTotal: number;
 };
 
 /* ------------------------------------------------------------------ */
@@ -105,12 +95,10 @@ export type AdminMeatBoxOrderSummary = {
   itemsCount: number;
   /** "ONE_TIME", "EVERY_2_WEEKS" ... */
   deliveryFrequency: string;
-  /** Set by staff once the meat is weighed. Null until then. */
-  confirmedTotal: number | null;
-  /** What the customer saw when ordering; shown while `confirmedTotal` is null. */
-  estimatedTotal: MeatBoxRange | null;
-  /** Sum of the weighed lines. Null until staff confirm. */
-  finalWeightKg: number | null;
+  /** What the customer pays, in naira (items + delivery fee - discount). */
+  total: number;
+  /** Combined weight of every box on the order, in kg. */
+  totalWeightKg: number;
   /** ISO. The upcoming delivery, null once delivered / cancelled. */
   nextDeliveryAt: string | null;
   /** ISO. Null until delivered. */
@@ -139,9 +127,8 @@ export type GetAdminMeatBoxStatsParams = {
 /** The stat strip. Same shape as the Orders page: a value plus its change. */
 export type AdminMeatBoxStats = {
   totalOrders: AdminOrderStat;
-  /** Waiting for staff to weigh and price them: the ones that need action. */
-  pendingWeighing: AdminOrderStat;
-  priceConfirmed: AdminOrderStat;
+  /** Created but not paid yet. */
+  pendingPayment: AdminOrderStat;
   processing: AdminOrderStat;
   outForDelivery: AdminOrderStat;
   completed: AdminOrderStat;
@@ -162,37 +149,28 @@ export type AdminMeatBoxOrderDetail = Omit<AdminMeatBoxOrderSummary, "customer">
   /** Free text for the butchers. */
   butcheryGuidelines: string | null;
   items: AdminMeatBoxOrderItem[];
-  /** What the customer saw when ordering. */
-  estimatedWeightKg: MeatBoxRange | null;
 
   /**
    * Oldest first (the drawer shows newest on top). Different from a shop
    * order's timeline, for example:
-   *   "Order has been made"            -> createdAt
-   *   "Final Weight & Price Confirmed" -> priceConfirmedAt
-   *   "Meat Box Prepared"              -> cut, weighed and packaged
+   *   "Order has been made"  -> createdAt
+   *   "Payment received"     -> paidAt
+   *   "Meat Box Prepared"    -> cut and packaged
    *   "Out for delivery"
    *   "Delivered" / "Order cancelled"
    */
   timeline: AdminOrderTimelineEvent[];
 
-  priceConfirmedAt: string | null;
+  /** ISO. Null while the order is PENDING_PAYMENT. */
   paidAt: string | null;
 
-  /** Payment Summary block. The totals are null until the price is confirmed. */
-  itemsTotal: number | null;
+  /** Payment Summary block. `total` (inherited) = itemsTotal - discount + deliveryFee. */
+  itemsTotal: number;
   discount: number;
   deliveryFee: number;
-  total: number | null;
 
   /** Drives the "Update Order Status" button. Empty = disabled. */
   allowedNextStatuses: AdminMeatBoxUpdatableStatus[];
-  /**
-   * True while the price can still be set or corrected: weighing is pending,
-   * or the price is confirmed but the customer hasn't paid. Drives the
-   * "Weight & Price" button.
-   */
-  canUpdatePrice: boolean;
   /** False once it's completed or already cancelled. Drives "Cancel Order". */
   canCancel: boolean;
   cancellation?: {
@@ -204,26 +182,6 @@ export type AdminMeatBoxOrderDetail = Omit<AdminMeatBoxOrderSummary, "customer">
 /* ------------------------------------------------------------------ */
 /* Actions                                                             */
 /* ------------------------------------------------------------------ */
-
-/** One line of the "Update Meat Box Price" form. */
-export type AdminMeatBoxPriceLineInput = {
-  /** MeatBoxOrderItem.id */
-  itemId: string;
-  finalWeightKg: number;
-  /** Final price of the whole line in NGN (not per kg). */
-  lineTotal: number;
-};
-
-/**
- * Every line must be sent. The backend saves each line, sets the order's
- * `finalWeightKg` and `confirmedTotal` to the sums, stamps `priceConfirmedAt`
- * and moves a PENDING_WEIGHING order to PRICE_CONFIRMED. Rejected once the
- * order is paid.
- */
-export type UpdateAdminMeatBoxPriceRequest = {
-  id: string;
-  items: AdminMeatBoxPriceLineInput[];
-};
 
 export type UpdateAdminMeatBoxStatusRequest = {
   id: string;

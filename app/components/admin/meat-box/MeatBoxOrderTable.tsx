@@ -3,7 +3,8 @@
 import { CustomerAvatar } from "@/app/components/admin/orders/CustomerAvatar";
 import { formatOrderDateTime } from "@/app/components/admin/orders/formatters";
 import type { AdminMeatBoxOrderSummary } from "@/redux/types";
-import { formatDeliveryFrequency, formatMeatBoxCode, getAmountLabel } from "./formatters";
+import { formatNaira } from "@/app/utils/product";
+import { formatDeliveryFrequency, formatMeatBoxCode } from "./formatters";
 import { useOpenMeatBoxOrder } from "./MeatBoxOrderDrawer";
 import { MeatBoxPaymentPill, MeatBoxStatusPill } from "./MeatBoxStatusPill";
 
@@ -30,7 +31,6 @@ type OrderRowProps = {
 
 function OrderRow({ order, onOpen }: OrderRowProps) {
   const open = () => onOpen(order);
-  const amount = getAmountLabel(order);
 
   return (
     <tr
@@ -59,9 +59,7 @@ function OrderRow({ order, onOpen }: OrderRowProps) {
         </div>
       </td>
       <td className="py-4 pr-4 text-sm text-neutral-900">{formatOrderDateTime(order.placedAt)}</td>
-      <td className={`py-4 pr-4 text-sm ${amount.estimated ? "text-neutral-500" : "text-neutral-900"}`}>
-        {amount.text}
-      </td>
+      <td className="py-4 pr-4 text-sm text-neutral-900">{formatNaira(order.total)}</td>
       <td className="py-4 pr-4 text-sm text-neutral-900">{order.itemsCount}</td>
       <td className="py-4 pr-4 text-sm text-neutral-900">
         <p>{deliveryDate(order)}</p>

@@ -3,10 +3,11 @@
 import type { ReactNode } from "react";
 import { AlertCircleIcon } from "@/app/components/ui/icons";
 import {
-  estimateBox,
-  formatKgRange,
-  formatNairaRange,
+  boxTotal,
+  boxWeightKg,
+  formatKg,
   formatQuantity,
+  lineTotal,
   type SelectedItem,
 } from "@/app/utils/meat-box";
 import { formatNaira } from "@/app/utils/product";
@@ -34,20 +35,6 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-/** What a line is expected to cost: exact for per-kilo meat, an estimate (or nothing yet) for animals. */
-function lineEstimate({ option, quantity }: SelectedItem): string {
-  if (option.unit === "kg" && option.pricePerKg != null) {
-    return formatNaira(option.pricePerKg * quantity);
-  }
-  if (option.estimatedPrice) {
-    return `~${formatNairaRange({
-      min: option.estimatedPrice.min * quantity,
-      max: option.estimatedPrice.max * quantity,
-    })}`;
-  }
-  return "Unconfirmed";
-}
-
 export default function ReviewStep({
   items,
   options,
@@ -62,7 +49,6 @@ export default function ReviewStep({
   const { data } = useListAddressesQuery();
   const address = data?.data.find((a) => a.id === values.addressId);
   const frequency = options.deliveryFrequencies.find((f) => f.id === values.frequencyId);
-  const estimate = estimateBox(items);
 
   return (
     <div>
@@ -81,8 +67,8 @@ export default function ReviewStep({
         {items.map((item) => (
           <Row
             key={item.option.id}
-            label={`${item.option.label} (${formatQuantity(item.option.unit, item.quantity)})`}
-            value={lineEstimate(item)}
+            label={`${item.option.label} (${formatKg(item.option.weightKg)} ${formatQuantity(item.quantity)})`}
+            value={formatNaira(lineTotal(item))}
           />
         ))}
       </Section>
@@ -114,30 +100,26 @@ export default function ReviewStep({
       <div className="mt-6 rounded-xl bg-[#f8f1e6] p-4">
         <p className="flex items-center gap-2 text-xs font-semibold text-luxol-orange">
           <AlertCircleIcon className="size-4" />
-          Weight &amp; Price Variance
+          Pay to confirm your order
         </p>
         <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-600">
-          Your final weight and price may vary slightly. Meat is prepared and weighed fresh after
-          ordering, so we will confirm the final amount prior to dispatch.
+          Your order is confirmed once payment goes through. Tap Pay Now to be taken to our secure
+          payment page.
         </p>
       </div>
 
       <div className="mt-4 flex items-end justify-between gap-4 rounded-xl bg-luxol-green p-4 text-white">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-wide text-white/70">
-            Est. box weight
+            Total weight
           </p>
-          <p className="mt-0.5 text-lg font-bold">
-            {estimate.weightKg ? `~${formatKgRange(estimate.weightKg)}` : "To be weighed"}
-          </p>
+          <p className="mt-0.5 text-lg font-bold">{formatKg(boxWeightKg(items))}</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] font-medium uppercase tracking-wide text-white/70">
-            Est. total range
+            Total to pay
           </p>
-          <p className="mt-0.5 text-lg font-bold text-luxol-orange">
-            {estimate.price ? formatNairaRange(estimate.price) : "Confirmed after weighing"}
-          </p>
+          <p className="mt-0.5 text-lg font-bold text-luxol-orange">{formatNaira(boxTotal(items))}</p>
         </div>
       </div>
     </div>

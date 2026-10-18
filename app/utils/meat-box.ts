@@ -1,26 +1,19 @@
-import type {
-  MeatBoxOption,
-  MeatBoxOrder,
-  MeatBoxOrderStatus,
-  MeatBoxRange,
-} from "@/redux/types";
-import { formatNaira } from "./product";
+import type { MeatBoxOption, MeatBoxOrder, MeatBoxOrderStatus } from "@/redux/types";
 
 /* ------------------------------------------------------------------ */
 /* Building a box                                                      */
 /* ------------------------------------------------------------------ */
 
-/** What the customer has picked so far: an option and how many (or how many kg). */
+/** What the customer has picked so far: an option and how many of it. */
 export type MeatBoxSelection = { optionId: string; quantity: number };
 
 export type SelectedItem = { option: MeatBoxOption; quantity: number };
 
 export const MIN_QUANTITY = 1;
-const DEFAULT_MAX_ANIMALS = 10;
-const DEFAULT_MAX_KG = 200;
+const DEFAULT_MAX_QUANTITY = 10;
 
 export function maxQuantityFor(option: MeatBoxOption): number {
-  return option.maxQuantity ?? (option.unit === "kg" ? DEFAULT_MAX_KG : DEFAULT_MAX_ANIMALS);
+  return option.maxQuantity ?? DEFAULT_MAX_QUANTITY;
 }
 
 /**
@@ -40,86 +33,38 @@ export function resolveSelection(
   });
 }
 
-/** "5 kg" for per-kilo meat, "×2" for animals and portions. */
-export function formatQuantity(unit: MeatBoxOption["unit"], quantity: number): string {
-  return unit === "kg" ? `${quantity}kg` : `×${quantity}`;
+/** "×2": how many of a box. */
+export function formatQuantity(quantity: number): string {
+  return `×${quantity}`;
 }
 
 /* ------------------------------------------------------------------ */
-/* Estimates                                                           */
+/* Weight and price                                                    */
 /* ------------------------------------------------------------------ */
 
+/** 120 -> "120kg", 45.125 -> "45.125kg". */
 export function formatKg(kg: number): string {
-  return `${Number.isInteger(kg) ? kg : kg.toFixed(1)}kg`;
+  return `${Number(kg.toFixed(3))}kg`;
 }
 
-export function formatKgRange(range: MeatBoxRange): string {
-  return range.min === range.max
-    ? formatKg(range.min)
-    : `${Number.isInteger(range.min) ? range.min : range.min.toFixed(1)} - ${formatKg(range.max)}`;
+/** Floating point safe: 0.1 * 3 -> 0.3, not 0.30000000000000004. */
+function roundMoney(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
-export function formatNairaRange(range: MeatBoxRange): string {
-  return range.min === range.max
-    ? formatNaira(range.min)
-    : `${formatNaira(range.min)} - ${formatNaira(range.max)}`;
+/** What one line costs: the box's price x how many. */
+export function lineTotal({ option, quantity }: SelectedItem): number {
+  return roundMoney(option.price * quantity);
 }
 
-export type BoxEstimate = {
-  /** null when nothing in the box has a weight estimate. */
-  weightKg: MeatBoxRange | null;
-  /** null when any item has no price estimate: the range would be misleading. */
-  price: MeatBoxRange | null;
-};
-
-/**
- * Estimated weight and price of the whole box.
- * Per-kilo meat is exact; animals use the option's own estimate per unit.
- */
-export function estimateBox(items: SelectedItem[]): BoxEstimate {
-  let weightMin = 0;
-  let weightMax = 0;
-  let hasWeight = false;
-  let priceMin = 0;
-  let priceMax = 0;
-  let priceKnown = items.length > 0;
-
-  for (const { option, quantity } of items) {
-    if (option.unit === "kg") {
-      weightMin += quantity;
-      weightMax += quantity;
-      hasWeight = true;
-      if (option.pricePerKg != null) {
-        priceMin += option.pricePerKg * quantity;
-        priceMax += option.pricePerKg * quantity;
-      } else {
-        priceKnown = false;
-      }
-      continue;
-    }
-
-    if (option.estimatedWeightKg) {
-      weightMin += option.estimatedWeightKg.min * quantity;
-      weightMax += option.estimatedWeightKg.max * quantity;
-      hasWeight = true;
-    }
-    if (option.estimatedPrice) {
-      priceMin += option.estimatedPrice.min * quantity;
-      priceMax += option.estimatedPrice.max * quantity;
-    } else {
-      priceKnown = false;
-    }
-  }
-
-  return {
-    weightKg: hasWeight ? { min: weightMin, max: weightMax } : null,
-    price: priceKnown ? { min: priceMin, max: priceMax } : null,
-  };
+/** What the whole box costs. Exact: the price is fixed from weight x price per kg. */
+export function boxTotal(items: SelectedItem[]): number {
+  return roundMoney(items.reduce((sum, item) => sum + lineTotal(item), 0));
 }
 
-/** The line price shown next to an item while the box is being built. */
-export function unitPriceLabel(option: MeatBoxOption): string {
-  return option.pricePerKg != null ? formatNaira(option.pricePerKg) : "Unconfirmed";
+/** Combined weight of everything picked, in kg. */
+export function boxWeightKg(items: SelectedItem[]): number {
+  return Number(items.reduce((sum, { option, quantity }) => sum + option.weightKg * quantity, 0).toFixed(3));
 }
 
 /* ------------------------------------------------------------------ */
@@ -127,8 +72,7 @@ export function unitPriceLabel(option: MeatBoxOption): string {
 /* ------------------------------------------------------------------ */
 
 export const MEAT_BOX_STATUS_LABEL: Record<MeatBoxOrderStatus, string> = {
-  pending_weighing: "Pending weighing",
-  price_confirmed: "Price confirmed",
+  pending_payment: "Awaiting payment",
   processing: "Processing",
   out_for_delivery: "Out for delivery",
   completed: "Completed",
@@ -137,8 +81,7 @@ export const MEAT_BOX_STATUS_LABEL: Record<MeatBoxOrderStatus, string> = {
 
 /** Orders that are still in progress, i.e. the "ongoing" Meat Box. */
 export const ACTIVE_STATUSES: MeatBoxOrderStatus[] = [
-  "pending_weighing",
-  "price_confirmed",
+  "pending_payment",
   "processing",
   "out_for_delivery",
 ];
@@ -147,30 +90,29 @@ export function isActive(order: Pick<MeatBoxOrder, "status">): boolean {
   return ACTIVE_STATUSES.includes(order.status);
 }
 
-/** Statuses where the customer can still back out without contacting support. */
+/** Created but not paid yet: the customer can still pay for it. */
+export function canPay(order: Pick<MeatBoxOrder, "status">): boolean {
+  return order.status === "pending_payment";
+}
+
+/** Only an unpaid order can be cancelled without contacting support. */
 export function canCancel(order: Pick<MeatBoxOrder, "status">): boolean {
-  return order.status === "pending_weighing" || order.status === "price_confirmed";
+  return order.status === "pending_payment";
 }
 
 export function orderCode(order: Pick<MeatBoxOrder, "code">): string {
   return `#${order.code}`;
 }
 
-/** "Quarter Cow ×1" for animals, "Cow Beef by Kg (5kg)" for per-kilo meat. */
+/** "Quarter Cow ×1" */
 export function orderLineLabel(item: MeatBoxOrder["items"][number]): string {
-  return item.unit === "kg" ? `${item.label} (${item.quantity}kg)` : `${item.label} ×${item.quantity}`;
+  return `${item.label} ${formatQuantity(item.quantity)}`;
 }
 
-/** "4 proteins · 8.5 kg" under an order in the history list. */
+/** "4 proteins · 8.5kg" under an order in the history list. */
 export function orderSubtitle(order: MeatBoxOrder): string {
   const proteins = `${order.items.length} ${order.items.length === 1 ? "protein" : "proteins"}`;
-  const weight =
-    order.finalWeightKg != null
-      ? ` · ${formatKg(order.finalWeightKg)}`
-      : order.estimatedWeightKg
-        ? ` · ~${formatKgRange(order.estimatedWeightKg)}`
-        : "";
-  return `${proteins}${weight}`;
+  return `${proteins} · ${formatKg(order.totalWeightKg)}`;
 }
 
 const dateFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });

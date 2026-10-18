@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ModalButton, ModalHeader } from "@/app/components/admin/inventory/ModalHeader";
 import { SelectField, TextField } from "@/app/components/admin/inventory/fields";
+import { formatNaira } from "@/app/utils/product";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/redux/config/errors";
 import {
@@ -13,27 +14,27 @@ import type {
   AdminMeatBoxActiveStatus,
   AdminMeatBoxCategory,
   AdminMeatBoxOption,
-  AdminMeatBoxUnit,
   CreateAdminMeatBoxOptionRequest,
 } from "@/redux/types";
-import { decimalPlaces, parseDecimal, sanitizeDecimal } from "./formatters";
+import {
+  computeBoxPrice,
+  decimalPlaces,
+  formatPerKg,
+  formatWeight,
+  parseDecimal,
+  sanitizeDecimal,
+} from "./formatters";
 import { SingleImageField } from "./SingleImageField";
-
-const UNIT_OPTIONS = [
-  { label: "Whole / half / quarter animal (priced after weighing)", value: "ANIMAL" },
-  { label: "By the kilo (fixed price per kg)", value: "KG" },
-];
 
 const STATUS_OPTIONS = [
   { label: "Active", value: "ACTIVE" },
   { label: "Inactive", value: "INACTIVE" },
 ];
 
-/** Grams (Decimal(10,3)) and kobo (Decimal(12,2)). */
+/** Grams (Decimal(10,3)). */
 const MAX_WEIGHT_DECIMALS = 3;
-const MAX_MONEY_DECIMALS = 2;
 
-type ErrorKey = "label" | "categoryId" | "pricePerKg" | "weight" | "price" | "maxQuantity" | "displayOrder";
+type ErrorKey = "label" | "categoryId" | "weight" | "maxQuantity" | "displayOrder";
 type Errors = Partial<Record<ErrorKey, string>>;
 
 function toText(value: number | null | undefined) {
@@ -45,21 +46,10 @@ function toNumber(raw: string) {
   return raw.trim() === "" ? null : Number(raw);
 }
 
-function checkAmount(raw: string, decimals: number, what: string): string | undefined {
+function checkWeight(raw: string): string | undefined {
   const n = parseDecimal(raw);
-  if (!Number.isFinite(n) || n <= 0) return `Enter ${what}`;
-  if (decimalPlaces(raw) > decimals) return `Up to ${decimals} decimal places`;
-  return undefined;
-}
-
-/** Both ends or neither: half a range would just confuse the customer. */
-function checkRange(minRaw: string, maxRaw: string, decimals: number, what: string): string | undefined {
-  if (minRaw.trim() === "" && maxRaw.trim() === "") return undefined;
-  const minError = checkAmount(minRaw, decimals, `the minimum ${what}`);
-  if (minError) return minError;
-  const maxError = checkAmount(maxRaw, decimals, `the maximum ${what}`);
-  if (maxError) return maxError;
-  if (parseDecimal(maxRaw) < parseDecimal(minRaw)) return "The maximum can't be below the minimum";
+  if (!Number.isFinite(n) || n <= 0) return "Enter the weight of this meat box";
+  if (decimalPlaces(raw) > MAX_WEIGHT_DECIMALS) return `Up to ${MAX_WEIGHT_DECIMALS} decimal places`;
   return undefined;
 }
 
@@ -74,10 +64,9 @@ export type MeatBoxOptionFormDialogProps = {
 };
 
 /**
- * Create / edit a Meat Box option ("Quarter Cow", "Goat Meat by Kg" ...).
- * Only the fields that make sense for the chosen unit are shown: per-kilo
- * meat has a fixed price per kg, animals have estimated weight and price
- * ranges (they are priced for real after weighing).
+ * Create / edit a Meat Box option ("Full Goat", "Half Cow", "Quarter Cow" ...).
+ * Staff only enter the weight: the price is the category's price per kg x that
+ * weight, shown here as a live preview and worked out for real by the backend.
  */
 export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId, close }: MeatBoxOptionFormDialogProps) {
   const [createOption, { isLoading: creating }] = useCreateAdminMeatBoxOptionMutation();
@@ -86,12 +75,7 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
 
   const [label, setLabel] = useState(option?.label ?? "");
   const [categoryId, setCategoryId] = useState(option?.categoryId ?? defaultCategoryId ?? categories[0]?.id ?? "");
-  const [unit, setUnit] = useState<AdminMeatBoxUnit>(option?.unit ?? "ANIMAL");
-  const [pricePerKg, setPricePerKg] = useState(toText(option?.pricePerKg));
-  const [minKg, setMinKg] = useState(toText(option?.estimatedMinKg));
-  const [maxKg, setMaxKg] = useState(toText(option?.estimatedMaxKg));
-  const [minPrice, setMinPrice] = useState(toText(option?.estimatedMinPrice));
-  const [maxPrice, setMaxPrice] = useState(toText(option?.estimatedMaxPrice));
+  const [weight, setWeight] = useState(toText(option?.weightKg));
   const [maxQuantity, setMaxQuantity] = useState(toText(option?.maxQuantity));
   const [status, setStatus] = useState<AdminMeatBoxActiveStatus>(option?.status ?? "ACTIVE");
   const [displayOrder, setDisplayOrder] = useState(option ? String(option.displayOrder) : "");
@@ -100,17 +84,17 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  const isKg = unit === "KG";
+  const category = categories.find((c) => c.id === categoryId);
+  const weightNumber = parseDecimal(weight);
+  const previewPrice =
+    category && Number.isFinite(weightNumber) && weightNumber > 0
+      ? computeBoxPrice(category.pricePerKg, weightNumber)
+      : null;
 
   const errors: Errors = {};
   if (label.trim().length < 2) errors.label = "Enter a name of at least 2 characters";
   if (!categoryId) errors.categoryId = "Choose a category";
-  if (isKg) {
-    errors.pricePerKg = checkAmount(pricePerKg, MAX_MONEY_DECIMALS, "the price per kg");
-  } else {
-    errors.weight = checkRange(minKg, maxKg, MAX_WEIGHT_DECIMALS, "weight");
-    errors.price = checkRange(minPrice, maxPrice, MAX_MONEY_DECIMALS, "price");
-  }
+  errors.weight = checkWeight(weight);
   if (maxQuantity.trim() !== "") {
     const n = Number(maxQuantity);
     if (!Number.isInteger(n) || n < 1) errors.maxQuantity = "Use a whole number, 1 or more";
@@ -128,17 +112,10 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
     setError("");
     if (hasErrors) return;
 
-    // Fields that don't apply to the chosen unit are sent as null so that
-    // switching an option's unit clears the old ones on the backend.
     const body = {
       categoryId,
       label: label.trim(),
-      unit,
-      pricePerKg: isKg ? toNumber(pricePerKg) : null,
-      estimatedMinKg: isKg ? null : toNumber(minKg),
-      estimatedMaxKg: isKg ? null : toNumber(maxKg),
-      estimatedMinPrice: isKg ? null : toNumber(minPrice),
-      estimatedMaxPrice: isKg ? null : toNumber(maxPrice),
+      weightKg: parseDecimal(weight),
       maxQuantity: toNumber(maxQuantity),
       status,
       displayOrder: toNumber(displayOrder) ?? 0,
@@ -150,7 +127,7 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
         await updateOption({ id: option.id, ...body }).unwrap();
         notify.success("Meat box updated", { message: `"${body.label}" was saved.` });
       } else {
-        // Nothing to clear on a new option, so don't send empty fields.
+        // Nothing to clear on a new option, so don't send an empty max quantity.
         const createBody = Object.fromEntries(
           Object.entries(body).filter(([, value]) => value !== null),
         ) as CreateAdminMeatBoxOptionRequest;
@@ -164,7 +141,7 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
   }
 
   const categoryOptions = categories.map((c) => ({
-    label: c.status === "INACTIVE" ? `${c.label} (inactive)` : c.label,
+    label: `${c.label} (${formatPerKg(c.pricePerKg)})${c.status === "INACTIVE" ? " (inactive)" : ""}`,
     value: c.id,
   }));
 
@@ -185,8 +162,8 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
           <h3 className="text-base font-semibold text-neutral-900">{option ? "Edit Meat Box" : "Add New Meat Box"}</h3>
           <p className="mt-1 text-sm text-neutral-500">
             {option
-              ? "Update what customers can order and how it is priced."
-              : "Add something customers can pick on the Meat Box page, like a Quarter Cow or Goat Meat by Kg."}
+              ? "Update what customers can order. The price follows the weight and the category's price per kg."
+              : "Add something customers can pick on the Meat Box page, like a Full Goat, a Half Cow or a Quarter Cow."}
           </p>
         </div>
 
@@ -196,7 +173,7 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
               label="Meat Box Name"
               value={label}
               onChange={setLabel}
-              placeholder="e.g. Quarter Cow"
+              placeholder="e.g. Full Goat"
               required
             />
             <FieldError message={shown.label} />
@@ -205,6 +182,7 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
           <div>
             <SelectField
               label="Category"
+              hint="The category's price per kg decides what this meat box costs."
               value={categoryId}
               onChange={setCategoryId}
               options={categoryOptions}
@@ -213,80 +191,28 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
             <FieldError message={shown.categoryId} />
           </div>
 
-          <SelectField
-            label="Sold As"
-            hint="Animals are weighed after the order and priced then. Per-kilo meat has a fixed price."
-            value={unit}
-            onChange={(v) => setUnit(v as AdminMeatBoxUnit)}
-            options={UNIT_OPTIONS}
+          <div>
+            <TextField
+              label="Weight (kg)"
+              hint="The weight of one meat box, e.g. 120 for a full goat."
+              value={weight}
+              onChange={(v) => setWeight(sanitizeDecimal(v))}
+              placeholder="e.g. 120"
+              required
+            />
+            <FieldError message={shown.weight} />
+          </div>
+
+          <PricePreview
+            price={previewPrice}
+            weightKg={previewPrice != null ? weightNumber : null}
+            pricePerKg={category?.pricePerKg ?? null}
           />
-
-          {isKg ? (
-            <div>
-              <TextField
-                label="Price per kg (₦)"
-                value={pricePerKg}
-                onChange={(v) => setPricePerKg(sanitizeDecimal(v))}
-                placeholder="e.g. 8500"
-              />
-              <FieldError message={shown.pricePerKg} />
-            </div>
-          ) : (
-            <>
-              <div>
-                <p className="text-sm font-medium text-neutral-900">Estimated weight of one unit (kg)</p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  What customers are told to expect, e.g. a quarter cow is 45 - 55kg.
-                </p>
-                <div className="mt-2.5 grid grid-cols-2 gap-4">
-                  <TextField
-                    label="Minimum"
-                    value={minKg}
-                    onChange={(v) => setMinKg(sanitizeDecimal(v))}
-                    placeholder="e.g. 45"
-                  />
-                  <TextField
-                    label="Maximum"
-                    value={maxKg}
-                    onChange={(v) => setMaxKg(sanitizeDecimal(v))}
-                    placeholder="e.g. 55"
-                  />
-                </div>
-                <FieldError message={shown.weight} />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-neutral-900">Estimated price of one unit (₦)</p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  Shown as a range until staff weigh the meat and confirm the final price.
-                </p>
-                <div className="mt-2.5 grid grid-cols-2 gap-4">
-                  <TextField
-                    label="Minimum"
-                    value={minPrice}
-                    onChange={(v) => setMinPrice(sanitizeDecimal(v))}
-                    placeholder="e.g. 300000"
-                  />
-                  <TextField
-                    label="Maximum"
-                    value={maxPrice}
-                    onChange={(v) => setMaxPrice(sanitizeDecimal(v))}
-                    placeholder="e.g. 360000"
-                  />
-                </div>
-                <FieldError message={shown.price} />
-              </div>
-            </>
-          )}
 
           <div>
             <TextField
               label="Max quantity per order"
-              hint={
-                isKg
-                  ? "The most kilos a customer can order at once. Leave blank for the default."
-                  : "The most a customer can order at once. Leave blank for the default."
-              }
+              hint="The most of this meat box a customer can order at once. Leave blank for the default."
               type="number"
               min={1}
               value={maxQuantity}
@@ -333,6 +259,29 @@ export function MeatBoxOptionFormDialog({ option, categories, defaultCategoryId,
         </div>
       </div>
     </>
+  );
+}
+
+/** The calculated price of this meat box, so staff can see what customers will pay. */
+function PricePreview({
+  price,
+  weightKg,
+  pricePerKg,
+}: {
+  price: number | null;
+  weightKg: number | null;
+  pricePerKg: number | null;
+}) {
+  return (
+    <div className="rounded-xl bg-neutral-50 px-4 py-3.5" aria-live="polite">
+      <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">Price (calculated)</p>
+      <p className="mt-1 text-lg font-semibold text-neutral-900">{price != null ? formatNaira(price) : "-"}</p>
+      <p className="mt-0.5 text-xs text-neutral-500">
+        {price != null && weightKg != null && pricePerKg != null
+          ? `${formatWeight(weightKg)} x ${formatPerKg(pricePerKg)}`
+          : "Enter a weight to see the price. It's the weight x the category's price per kg."}
+      </p>
+    </div>
   );
 }
 

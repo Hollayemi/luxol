@@ -7,9 +7,9 @@ import { MeatBoxOrdersTab } from "@/app/components/admin/meat-box/MeatBoxOrdersT
 import { MeatBoxTabs, type MeatBoxTab } from "@/app/components/admin/meat-box/MeatBoxTabs";
 
 /**
- * The Meat Box admin page: attend to orders (weigh, price, move along) on one
- * tab, and manage what customers can order (categories and their options) on
- * the other. Only the active tab is mounted, so the Orders tab stops polling
+ * The Meat Box admin page: attend to orders (move paid orders along) on one
+ * tab, and manage what customers can order (categories with a price per kg, and
+ * their meat boxes with a weight) on the other. Only the active tab is mounted, so the Orders tab stops polling
  * while staff are editing the catalogue.
  */
 export default function MeatBoxClient() {

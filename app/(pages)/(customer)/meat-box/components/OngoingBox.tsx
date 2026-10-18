@@ -5,40 +5,24 @@ import { ConfirmDialog } from "@/app/components/admin/ConfirmDialog";
 import { useDialog } from "@/app/components/dialog/DialogProvider";
 import {
   canCancel,
-  formatNairaRange,
+  canPay,
+  formatKg,
   formatNextDelivery,
   MEAT_BOX_STATUS_LABEL,
+  orderLineLabel,
 } from "@/app/utils/meat-box";
 import { formatNaira } from "@/app/utils/product";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/redux/config/errors";
 import {
   useCancelMeatBoxOrderMutation,
-  usePlaceMeatBoxOrderMutation,
+  usePayMeatBoxOrderMutation,
 } from "@/redux/slices/meatBoxApi";
 import type { MeatBoxOrder } from "@/redux/types";
 
-function Headline({ order }: { order: MeatBoxOrder }) {
-  if (order.confirmedTotal != null) {
-    return <p className="mt-3 text-3xl font-bold">{formatNaira(order.confirmedTotal)}</p>;
-  }
-  return (
-    <>
-      <p className="mt-3 text-2xl font-bold">Pending weighing</p>
-      {order.estimatedTotal && (
-        <p className="mt-1 text-xs text-white/70">
-          Estimated {formatNairaRange(order.estimatedTotal)}
-        </p>
-      )}
-    </>
-  );
-}
-
 function Message({ order }: { order: MeatBoxOrder }) {
   const text: Partial<Record<MeatBoxOrder["status"], string>> = {
-    pending_weighing:
-      "We're preparing and weighing your meat. We'll confirm the price within 1 to 24 hours.",
-    price_confirmed: "Your price is confirmed. Place the order to pay and lock in your delivery.",
+    pending_payment: "Your order is waiting for payment. Pay now to lock in your delivery.",
     processing: "Payment received. Your box is being prepared.",
     out_for_delivery: "Your Meat Box is on its way.",
   };
@@ -48,17 +32,18 @@ function Message({ order }: { order: MeatBoxOrder }) {
 
 export default function OngoingBox({ order }: { order: MeatBoxOrder }) {
   const { openDialog } = useDialog();
-  const [place, { isLoading: placing }] = usePlaceMeatBoxOrderMutation();
+  const [pay, { isLoading: paying }] = usePayMeatBoxOrderMutation();
   const [cancel] = useCancelMeatBoxOrderMutation();
   const [redirecting, setRedirecting] = useState(false);
 
-  async function placeOrder() {
+  /** The customer closed the payment page earlier: get a fresh link and send them back to it. */
+  async function payNow() {
     try {
-      const res = await place(order.id).unwrap();
+      const res = await pay(order.id).unwrap();
       setRedirecting(true);
       window.location.assign(res.data.payment.authorizationUrl);
     } catch (err) {
-      notify.error("We couldn't place your order", { message: getErrorMessage(err) });
+      notify.error("We couldn't start your payment", { message: getErrorMessage(err) });
     }
   }
 
@@ -97,7 +82,8 @@ export default function OngoingBox({ order }: { order: MeatBoxOrder }) {
           )}
         </div>
 
-        <Headline order={order} />
+        <p className="mt-3 text-3xl font-bold">{formatNaira(order.total)}</p>
+        <p className="mt-1 text-xs text-white/70">{formatKg(order.totalWeightKg)} in total</p>
         <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-luxol-orange">
           {MEAT_BOX_STATUS_LABEL[order.status]}
         </p>
@@ -113,18 +99,18 @@ export default function OngoingBox({ order }: { order: MeatBoxOrder }) {
 
         <Message order={order} />
 
-        {order.status === "price_confirmed" && (
+        {canPay(order) && (
           <button
             type="button"
-            onClick={() => void placeOrder()}
-            disabled={placing || redirecting}
+            onClick={() => void payNow()}
+            disabled={paying || redirecting}
             className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-xl bg-luxol-orange px-6 text-sm font-semibold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {redirecting
               ? "Taking you to payment…"
-              : placing
+              : paying
                 ? "Processing…"
-                : `Place Order${order.confirmedTotal != null ? ` · ${formatNaira(order.confirmedTotal)}` : ""}`}
+                : `Pay Now · ${formatNaira(order.total)}`}
           </button>
         )}
       </div>
@@ -135,11 +121,12 @@ export default function OngoingBox({ order }: { order: MeatBoxOrder }) {
           {order.items.map((item) => (
             <li key={item.optionId}>
               <p className="text-xs text-neutral-500">
-                {item.unit === "kg" ? `${item.label} (${item.quantity}kg)` : `${item.label} ×${item.quantity}`}
+                {orderLineLabel(item)}
+                <span className="ml-1.5 text-neutral-400">
+                  {formatKg(item.weightKg * item.quantity)}
+                </span>
               </p>
-              <p className="text-sm font-semibold text-neutral-900">
-                {item.lineTotal != null ? formatNaira(item.lineTotal) : "Pending"}
-              </p>
+              <p className="text-sm font-semibold text-neutral-900">{formatNaira(item.lineTotal)}</p>
             </li>
           ))}
         </ul>

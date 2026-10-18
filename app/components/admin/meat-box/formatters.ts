@@ -1,12 +1,8 @@
 import { formatNaira } from "@/app/utils/product";
 import type {
-  AdminMeatBoxOption,
   AdminMeatBoxOrderItem,
-  AdminMeatBoxOrderSummary,
   AdminMeatBoxPaymentStatus,
   AdminMeatBoxStatus,
-  AdminMeatBoxUnit,
-  MeatBoxRange,
 } from "@/redux/types";
 
 /* ------------------------------------------------------------------ */
@@ -14,8 +10,7 @@ import type {
 /* ------------------------------------------------------------------ */
 
 export const MEAT_BOX_STATUS_LABELS: Record<AdminMeatBoxStatus, string> = {
-  PENDING_WEIGHING: "Pending Weighing",
-  PRICE_CONFIRMED: "Price Confirmed",
+  PENDING_PAYMENT: "Pending Payment",
   PROCESSING: "Processing",
   OUT_FOR_DELIVERY: "Out for Delivery",
   COMPLETED: "Completed",
@@ -51,86 +46,42 @@ export function formatDeliveryFrequency(value: string) {
 /* Weights, quantities and prices                                      */
 /* ------------------------------------------------------------------ */
 
-/** 45 -> "45kg", 45.125 -> "45.125kg" (weighed to the gram, so don't round to 1 dp). */
+/** 120 -> "120kg", 45.125 -> "45.125kg" (up to the gram, so don't round to 1 dp). */
 export function formatWeight(kg: number) {
   return `${Number(kg.toFixed(3))}kg`;
 }
 
-export function formatWeightRange(range: MeatBoxRange) {
-  return range.min === range.max
-    ? formatWeight(range.min)
-    : `${Number(range.min.toFixed(3))} - ${formatWeight(range.max)}`;
+/** 8000 -> "₦8,000/kg" */
+export function formatPerKg(pricePerKg: number) {
+  return `${formatNaira(pricePerKg)}/kg`;
 }
 
-export function formatPriceRange(range: MeatBoxRange) {
-  return range.min === range.max
-    ? formatNaira(range.min)
-    : `${formatNaira(range.min)} - ${formatNaira(range.max)}`;
-}
-
-/** "5kg" for per-kilo meat, "×2" for animals and portions. */
-export function formatItemQuantity(unit: AdminMeatBoxUnit, quantity: number) {
-  return unit === "KG" ? `${quantity}kg` : `×${quantity}`;
-}
-
-/** Estimated weight of the WHOLE line (the option's estimate is for one unit). */
-export function getItemEstimatedWeight(item: AdminMeatBoxOrderItem): MeatBoxRange | null {
-  if (item.unit === "KG") return { min: item.quantity, max: item.quantity };
-  if (!item.estimatedWeightKg) return null;
-  return {
-    min: item.estimatedWeightKg.min * item.quantity,
-    max: item.estimatedWeightKg.max * item.quantity,
-  };
-}
-
-/** The muted line under an item's name: what staff should expect on the scale. */
-export function getItemHint(item: AdminMeatBoxOrderItem) {
-  if (item.unit === "KG") {
-    const ordered = `Ordered ${formatWeight(item.quantity)}`;
-    return item.pricePerKg != null ? `${ordered} · ${formatNaira(item.pricePerKg)}/kg` : ordered;
-  }
-  const estimate = getItemEstimatedWeight(item);
-  return estimate ? `Est. ${formatWeightRange(estimate)}` : "Weight not estimated";
+/** "×2": how many of a box. */
+export function formatItemQuantity(quantity: number) {
+  return `×${quantity}`;
 }
 
 /**
- * The Amount column: the confirmed price, or the estimate the customer saw
- * (flagged as an estimate) while the order is still waiting to be weighed.
+ * The price of one meat box: its category's price per kg x its weight.
+ * The backend computes the real figure; this is the same sum, used for the
+ * live preview while staff type a weight or a price per kg.
  */
-export function getAmountLabel(order: Pick<AdminMeatBoxOrderSummary, "confirmedTotal" | "estimatedTotal">) {
-  if (order.confirmedTotal != null) return { text: formatNaira(order.confirmedTotal), estimated: false };
-  if (order.estimatedTotal) return { text: `Est. ${formatPriceRange(order.estimatedTotal)}`, estimated: true };
-  return { text: "-", estimated: true };
+export function computeBoxPrice(pricePerKg: number, weightKg: number) {
+  return roundMoney(pricePerKg * weightKg);
+}
+
+/** Weight of a whole order line: one box's weight x how many were ordered. */
+export function getItemWeight(item: Pick<AdminMeatBoxOrderItem, "weightKg" | "quantity">) {
+  return Number((item.weightKg * item.quantity).toFixed(3));
+}
+
+/** The muted line under an item's name: "120kg each · ₦8,000/kg". */
+export function getItemHint(item: Pick<AdminMeatBoxOrderItem, "weightKg" | "pricePerKg">) {
+  return `${formatWeight(item.weightKg)} each · ${formatPerKg(item.pricePerKg)}`;
 }
 
 /* ------------------------------------------------------------------ */
-/* Catalogue (options)                                                 */
-/* ------------------------------------------------------------------ */
-
-export const MEAT_BOX_UNIT_LABELS: Record<AdminMeatBoxUnit, string> = {
-  ANIMAL: "Per animal",
-  KG: "Per kg",
-};
-
-/** A range only exists when both ends are set. */
-export function toRange(min: number | null, max: number | null): MeatBoxRange | null {
-  return min != null && max != null ? { min, max } : null;
-}
-
-/** "45 - 55kg" for one unit of an option, or "-" when there's no estimate. */
-export function formatOptionWeight(option: Pick<AdminMeatBoxOption, "estimatedMinKg" | "estimatedMaxKg">) {
-  const range = toRange(option.estimatedMinKg, option.estimatedMaxKg);
-  return range ? formatWeightRange(range) : "-";
-}
-
-/** "₦50,000 - ₦60,000" for one unit of an option, or "-" when there's no estimate. */
-export function formatOptionPrice(option: Pick<AdminMeatBoxOption, "estimatedMinPrice" | "estimatedMaxPrice">) {
-  const range = toRange(option.estimatedMinPrice, option.estimatedMaxPrice);
-  return range ? formatPriceRange(range) : "-";
-}
-
-/* ------------------------------------------------------------------ */
-/* Price form numbers                                                  */
+/* Form numbers                                                        */
 /* ------------------------------------------------------------------ */
 
 /** Keeps digits and a single dot, so "₦1,250.5kg" can be pasted and still works. */

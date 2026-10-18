@@ -3,9 +3,12 @@
 import { CloseIcon } from "@/app/components/ui/icons";
 import {
   MIN_QUANTITY,
+  boxTotal,
+  boxWeightKg,
+  formatKg,
   formatQuantity,
+  lineTotal,
   maxQuantityFor,
-  unitPriceLabel,
   type SelectedItem,
 } from "@/app/utils/meat-box";
 import { formatNaira } from "@/app/utils/product";
@@ -97,12 +100,17 @@ export default function SelectedItemsCard({
               )}
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs text-neutral-600">{item.option.label}</p>
+                <p className="truncate text-xs text-neutral-600">
+                  {item.option.label}
+                  <span className="ml-1.5 text-neutral-400">
+                    {formatKg(item.option.weightKg * item.quantity)}
+                  </span>
+                </p>
                 <p className="text-sm font-semibold text-neutral-900">
-                  {unitPriceLabel(item.option)}
+                  {formatNaira(lineTotal(item))}
                   {!editable && (
                     <span className="ml-1.5 text-xs font-normal text-neutral-500">
-                      {formatQuantity(item.option.unit, item.quantity)}
+                      {formatQuantity(item.quantity)}
                     </span>
                   )}
                 </p>
@@ -122,15 +130,18 @@ export default function SelectedItemsCard({
       <hr className="my-5 border-neutral-200" />
 
       <div className="flex items-center justify-between text-sm">
+        <span className="text-neutral-600">Total Weight</span>
+        <span className="font-semibold text-neutral-900">{formatKg(boxWeightKg(items))}</span>
+      </div>
+      <div className="mt-2.5 flex items-center justify-between text-sm">
         <span className="text-neutral-600">Total Cost</span>
-        <span className="font-semibold text-neutral-900">{formatNaira(0)}</span>
+        <span className="text-base font-bold text-neutral-900">{formatNaira(boxTotal(items))}</span>
       </div>
 
-      <p className="mt-4 text-sm font-semibold text-luxol-green">Price shown after weighing</p>
+      <p className="mt-4 text-sm font-semibold text-luxol-green">Fixed price, no surprises</p>
       <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-500">
-        Your final weight and price will vary slightly. Meat will be prepared and weighed fresh
-        after ordering, so a price will be communicated back within 1 to 24 hours for payment
-        confirmation and proceed to make the order.
+        Each meat box is priced by its weight and the price per kg shown above, so what you see is
+        what you pay. You&apos;ll pay securely online when you place your order.
       </p>
 
       <button

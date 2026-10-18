@@ -52,7 +52,8 @@ export type AdminOverviewStats = {
 export type AdminOverviewMeatBox = {
   activeOrders: number;
   preparing: number;
-  awaitingWeight: number;
+  /** Created but not paid yet. */
+  awaitingPayment: number;
   /** Ready to show, e.g. "Today: 10:00 AM - 2:00PM". Null when nothing is scheduled. */
   nextDeliveryWindow: string | null;
 };

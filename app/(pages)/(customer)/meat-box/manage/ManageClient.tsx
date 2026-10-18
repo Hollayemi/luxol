@@ -21,11 +21,13 @@ export default function ManageClient({ highlightOrderId }: { highlightOrderId?: 
   const openAuth = useOpenAuth();
   const authed = sessionStatus === "authenticated";
 
-  // While something is waiting on staff (weighing) or on the payment webhook,
-  // re-check so the price and the "Place Order" button show up on their own.
+  // A customer coming back from the payment page may land before the payment
+  // webhook has, so keep re-checking and the order flips from "Awaiting
+  // payment" to "Processing" on its own.
   const { data, isLoading, isError, error, refetch } = useListMyMeatBoxOrdersQuery(undefined, {
     skip: !authed,
     pollingInterval: MEAT_BOX_ORDER_POLL_MS,
+    skipPollingIfUnfocused: true,
   });
 
   if (sessionStatus === "loading" || (authed && isLoading)) {
@@ -61,7 +63,7 @@ export default function ManageClient({ highlightOrderId }: { highlightOrderId?: 
     return (
       <Empty
         title="You haven't ordered a Meat Box yet"
-        body="Pick whole, half or quarter animals, or cuts by the kilo, and we'll prepare them fresh."
+        body="Pick whole, half or quarter boxes at a set price per kg, and we'll prepare them fresh."
       >
         <Link href="/meat-box/build" className={primaryBtn}>
           Build Your Meat Box

@@ -16,7 +16,6 @@ import type {
   Paginated,
   UpdateAdminMeatBoxCategoryRequest,
   UpdateAdminMeatBoxOptionRequest,
-  UpdateAdminMeatBoxPriceRequest,
   UpdateAdminMeatBoxStatusRequest,
 } from "../types";
 import baseApi from "./baseApi";
@@ -25,7 +24,7 @@ import baseApi from "./baseApi";
  * Multipart body for a category / option. A key that was never set is left
  * out (so a status-only update changes nothing else), `image` is only sent
  * when there is a new file, and an explicit `null` goes as an empty string
- * so staff can clear a field (see CreateAdminMeatBoxOptionRequest).
+ * so staff can clear an optional field (see CreateAdminMeatBoxOptionRequest).
  */
 function catalogueFormData(body: Record<string, unknown>) {
   const defined = Object.fromEntries(
@@ -43,27 +42,25 @@ function catalogueFormData(body: Record<string, unknown>) {
  *  ── GET   /admin/meat-box/orders/:id        getAdminMeatBoxOrder   (Order Details drawer)
  *
  *  Actions
- *  ── PATCH  /admin/meat-box/orders/:id/price   updateAdminMeatBoxPrice        ("Update Meat Box Price")
  *  ── PATCH  /admin/meat-box/orders/:id/status  updateAdminMeatBoxOrderStatus  ("Update Order Status")
  *  ── POST   /admin/meat-box/orders/:id/cancel  cancelAdminMeatBoxOrder        ("Cancel Order")
  *
  *  Catalogue (the Options & Categories tab)
- *  ── GET    /admin/meat-box/categories        listAdminMeatBoxCatalogue   categories with their options, together
- *  ── POST   /admin/meat-box/categories        createAdminMeatBoxCategory  multipart (image)
- *  ── PATCH  /admin/meat-box/categories/:id    updateAdminMeatBoxCategory  multipart
+ *  ── GET    /admin/meat-box/categories        listAdminMeatBoxCatalogue   categories (with price per kg) and their options, together
+ *  ── POST   /admin/meat-box/categories        createAdminMeatBoxCategory  multipart (image); needs pricePerKg
+ *  ── PATCH  /admin/meat-box/categories/:id    updateAdminMeatBoxCategory  multipart; changing pricePerKg re-prices its boxes
  *  ── DELETE /admin/meat-box/categories/:id    deleteAdminMeatBoxCategory  rejected while it still has options
- *  ── POST   /admin/meat-box/options           createAdminMeatBoxOption    multipart (image)
+ *  ── POST   /admin/meat-box/options           createAdminMeatBoxOption    multipart (image); needs weightKg, price is computed
  *  ── PATCH  /admin/meat-box/options/:id       updateAdminMeatBoxOption    multipart
  *  ── DELETE /admin/meat-box/options/:id       deleteAdminMeatBoxOption    rejected if it has been ordered
  *
  * Separate from adminOrdersApi.ts because a Meat Box order has its own
- * lifecycle: staff weigh the meat and confirm the price before the customer
- * can pay (see types/adminMeatBox.ts). Statuses after that work like any order.
+ * lifecycle and timeline (see types/adminMeatBox.ts). There is no weighing or
+ * price step: a box costs its category's price per kg x its weight, the
+ * customer pays when they order, and staff move the paid order along.
  *
  * Every action invalidates the order, the list and the stats, so the table,
- * the drawer and the numbers on top refresh together. The customer's own
- * Manage page picks up a confirmed price by polling (see MEAT_BOX_ORDER_POLL_MS
- * in meatBoxApi.ts).
+ * the drawer and the numbers on top refresh together.
  */
 export const adminMeatBoxApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -98,24 +95,6 @@ export const adminMeatBoxApi = baseApi.injectEndpoints({
     getAdminMeatBoxOrder: builder.query<ApiSuccess<AdminMeatBoxOrderDetail>, string>({
       query: (id) => ({ url: API_ROUTES.adminMeatBox.detail(id) }),
       providesTags: (_result, _error, id) => [{ type: "AdminMeatBoxOrder", id }],
-    }),
-
-    /**
-     * "Update Meat Box Price": the final weight and price of every line.
-     * Confirms the price (PENDING_WEIGHING -> PRICE_CONFIRMED), after which
-     * the customer can place the order and pay.
-     */
-    updateAdminMeatBoxPrice: builder.mutation<ApiSuccess<AdminMeatBoxOrderDetail>, UpdateAdminMeatBoxPriceRequest>({
-      query: ({ id, ...body }) => ({
-        url: API_ROUTES.adminMeatBox.price(id),
-        method: "PATCH",
-        data: body,
-      }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: "AdminMeatBoxOrder", id },
-        { type: "AdminMeatBoxOrder", id: "LIST" },
-        "AdminMeatBoxStats",
-      ],
     }),
 
     /** "Update Order Status": move a paid order along the workflow. */
@@ -216,7 +195,6 @@ export const {
   useGetAdminMeatBoxStatsQuery,
   useListAdminMeatBoxOrdersQuery,
   useGetAdminMeatBoxOrderQuery,
-  useUpdateAdminMeatBoxPriceMutation,
   useUpdateAdminMeatBoxOrderStatusMutation,
   useCancelAdminMeatBoxOrderMutation,
   useListAdminMeatBoxCatalogueQuery,

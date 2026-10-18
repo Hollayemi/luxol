@@ -61,7 +61,7 @@ export const API_ROUTES = {
     options: "/meat-box/options",
     orders: "/meat-box/orders",
     order: (id: string) => `/meat-box/orders/${id}`,
-    place: (id: string) => `/meat-box/orders/${id}/place`,
+    pay: (id: string) => `/meat-box/orders/${id}/pay`,
     cancel: (id: string) => `/meat-box/orders/${id}/cancel`,
   },
   adminOrders: {
@@ -75,7 +75,6 @@ export const API_ROUTES = {
     stats: "/admin/meat-box/stats",
     list: "/admin/meat-box/orders",
     detail: (id: string) => `/admin/meat-box/orders/${id}`,
-    price: (id: string) => `/admin/meat-box/orders/${id}/price`,
     status: (id: string) => `/admin/meat-box/orders/${id}/status`,
     cancel: (id: string) => `/admin/meat-box/orders/${id}/cancel`,
     categories: "/admin/meat-box/categories",

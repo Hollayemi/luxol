@@ -15,13 +15,11 @@ import {
   formatDeliveryFrequency,
   formatItemQuantity,
   formatMeatBoxCode,
-  formatPriceRange,
   formatWeight,
-  formatWeightRange,
   getItemHint,
+  getItemWeight,
 } from "./formatters";
 import { MeatBoxPaymentPill, MeatBoxStatusPill } from "./MeatBoxStatusPill";
-import { UpdateMeatBoxPriceDialog } from "./UpdateMeatBoxPriceDialog";
 import { UpdateMeatBoxStatusForm } from "./UpdateMeatBoxStatusForm";
 
 type OpenDialog = ReturnType<typeof useDialog>["openDialog"];
@@ -55,7 +53,6 @@ export type MeatBoxOrderDrawerProps = {
 };
 
 export function MeatBoxOrderDrawer({ orderId, close }: MeatBoxOrderDrawerProps) {
-  const { openDialog } = useDialog();
   const { data, isLoading, isError, error, refetch } = useGetAdminMeatBoxOrderQuery(orderId);
   const [mode, setMode] = useState<FooterMode>("actions");
   const order = data?.data;
@@ -68,18 +65,6 @@ export function MeatBoxOrderDrawer({ orderId, close }: MeatBoxOrderDrawerProps) 
     } catch {
       notify.error("Couldn't copy", { message: "Copy the order number by hand instead." });
     }
-  }
-
-  /**
-   * The price form is a wide modal, and only one dialog can be open at a time,
-   * so it replaces this drawer and brings it back (with fresh data) when done.
-   */
-  function openPriceDialog(current: AdminMeatBoxOrderDetail) {
-    const ref: OrderRef = { id: current.id, code: current.code };
-    openDialog(
-      () => <UpdateMeatBoxPriceDialog order={current} onDone={() => openOrderDrawer(openDialog, ref)} />,
-      { title: "Update Meat Box Price", side: "center", width: "xl" },
-    );
   }
 
   return (
@@ -139,34 +124,23 @@ export function MeatBoxOrderDrawer({ orderId, close }: MeatBoxOrderDrawerProps) 
           ) : mode === "cancel" && order.canCancel ? (
             <CancelMeatBoxOrderForm order={order} onBack={() => setMode("actions")} />
           ) : (
-            <div className="space-y-3">
-              {order.canUpdatePrice && (
-                <button
-                  type="button"
-                  onClick={() => openPriceDialog(order)}
-                  className="h-11 w-full rounded-xl bg-luxol-green text-sm font-medium text-white transition hover:brightness-110"
-                >
-                  {order.priceConfirmedAt ? "Edit Weight & Price" : "Confirm Weight & Price"}
-                </button>
-              )}
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setMode("update")}
-                  disabled={order.allowedNextStatuses.length === 0}
-                  className="h-11 flex-1 rounded-xl border border-neutral-300 bg-white text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Update Order Status
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("cancel")}
-                  disabled={!order.canCancel}
-                  className="h-11 flex-1 rounded-xl bg-[#c0392b] text-sm font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Cancel Order
-                </button>
-              </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMode("update")}
+                disabled={order.allowedNextStatuses.length === 0}
+                className="h-11 flex-1 rounded-xl border border-neutral-300 bg-white text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Update Order Status
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("cancel")}
+                disabled={!order.canCancel}
+                className="h-11 flex-1 rounded-xl bg-[#c0392b] text-sm font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel Order
+              </button>
             </div>
           )}
         </div>
@@ -180,8 +154,6 @@ export function MeatBoxOrderDrawer({ orderId, close }: MeatBoxOrderDrawerProps) 
 /* ------------------------------------------------------------------ */
 
 function OrderBody({ order }: { order: AdminMeatBoxOrderDetail }) {
-  const awaitingPrice = order.itemsTotal == null;
-
   return (
     <>
       <div className="grid grid-cols-3 gap-4 text-sm">
@@ -210,11 +182,11 @@ function OrderBody({ order }: { order: AdminMeatBoxOrderDetail }) {
         </div>
       )}
 
-      {order.status === "PENDING_WEIGHING" && (
+      {order.status === "PENDING_PAYMENT" && (
         <div className="mt-5 rounded-xl bg-[#fdf0da] px-4 py-3 text-sm text-amber-800">
-          <p className="font-medium">Waiting to be weighed</p>
+          <p className="font-medium">Waiting for payment</p>
           <p className="mt-0.5 text-amber-700">
-            Enter the final weight and price so the customer can pay for this box.
+            The customer hasn&apos;t paid for this box yet. It moves to Processing once their payment is received.
           </p>
         </div>
       )}
@@ -238,7 +210,7 @@ function OrderBody({ order }: { order: AdminMeatBoxOrderDetail }) {
             <tr className="text-xs font-medium text-neutral-600">
               <th className="pb-3 font-medium">Product Details</th>
               <th className="pb-3 pr-4 font-medium">Qty</th>
-              <th className="pb-3 pr-4 font-medium">Final Weight</th>
+              <th className="pb-3 pr-4 font-medium">Weight</th>
               <th className="pb-3 text-right font-medium">Price</th>
             </tr>
           </thead>
@@ -261,15 +233,9 @@ function OrderBody({ order }: { order: AdminMeatBoxOrderDetail }) {
                     </div>
                   </div>
                 </td>
-                <td className="py-3 pr-4 font-medium text-neutral-900">
-                  {formatItemQuantity(item.unit, item.quantity)}
-                </td>
-                <td className="py-3 pr-4 font-medium text-neutral-900">
-                  {item.finalWeightKg != null ? formatWeight(item.finalWeightKg) : <Pending />}
-                </td>
-                <td className="py-3 text-right font-medium text-neutral-900">
-                  {item.lineTotal != null ? formatNaira(item.lineTotal) : <Pending />}
-                </td>
+                <td className="py-3 pr-4 font-medium text-neutral-900">{formatItemQuantity(item.quantity)}</td>
+                <td className="py-3 pr-4 font-medium text-neutral-900">{formatWeight(getItemWeight(item))}</td>
+                <td className="py-3 text-right font-medium text-neutral-900">{formatNaira(item.lineTotal)}</td>
               </tr>
             ))}
           </tbody>
@@ -292,26 +258,11 @@ function OrderBody({ order }: { order: AdminMeatBoxOrderDetail }) {
 
       <Section title="Payment Summary">
         <dl className="mt-4 space-y-3 text-sm">
-          {awaitingPrice ? (
-            <>
-              <SummaryRow
-                label="Estimated Weight"
-                value={order.estimatedWeightKg ? formatWeightRange(order.estimatedWeightKg) : "-"}
-              />
-              <SummaryRow
-                label="Estimated Total"
-                value={order.estimatedTotal ? formatPriceRange(order.estimatedTotal) : "-"}
-              />
-              <SummaryRow label="Final Total" value="Awaiting weighing" strong />
-            </>
-          ) : (
-            <>
-              <SummaryRow label="Items Total" value={formatNaira(order.itemsTotal ?? 0)} />
-              <SummaryRow label="Discount" value={formatNaira(order.discount)} />
-              <SummaryRow label="Delivery Fee" value={formatNaira(order.deliveryFee)} />
-              <SummaryRow label="Total" value={formatNaira(order.total ?? 0)} strong />
-            </>
-          )}
+          <SummaryRow label="Total Weight" value={formatWeight(order.totalWeightKg)} />
+          <SummaryRow label="Items Total" value={formatNaira(order.itemsTotal)} />
+          <SummaryRow label="Discount" value={formatNaira(order.discount)} />
+          <SummaryRow label="Delivery Fee" value={formatNaira(order.deliveryFee)} />
+          <SummaryRow label="Total" value={formatNaira(order.total)} strong />
         </dl>
       </Section>
     </>
@@ -321,10 +272,6 @@ function OrderBody({ order }: { order: AdminMeatBoxOrderDetail }) {
 /* ------------------------------------------------------------------ */
 /* Small pieces                                                        */
 /* ------------------------------------------------------------------ */
-
-function Pending() {
-  return <span className="font-normal text-neutral-400">Pending</span>;
-}
 
 function Section({
   title,

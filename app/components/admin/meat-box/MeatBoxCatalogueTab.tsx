@@ -19,7 +19,8 @@ import { MeatBoxCategorySection } from "./MeatBoxCategorySection";
 import { MeatBoxOptionFormDialog } from "./MeatBoxOptionFormDialog";
 
 /**
- * The "Options & Categories" tab: every category with its meat boxes read
+ * The "Options & Categories" tab: every category (with its price per kg) and
+ * its meat boxes (with a weight and the price worked out from it) read
  * together, plus create / edit / delete for both through dialogs.
  */
 export function MeatBoxCatalogueTab() {
@@ -193,7 +194,8 @@ export function MeatBoxCatalogueTab() {
           </span>
           <p className="text-sm font-medium text-neutral-900">No categories yet</p>
           <p className="max-w-sm text-sm text-neutral-500">
-            Start with a category like Cow Beef or Goat, then add the meat boxes customers can pick inside it.
+            Start with a category like Cow Beef or Goat and set its price per kg, then add the meat boxes (full, half,
+            quarter...) customers can pick inside it. Each meat box is priced from its weight.
           </p>
           <button
             type="button"

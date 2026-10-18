@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNaira } from "@/app/utils/product";
 import type { MeatBoxCategory } from "@/redux/types";
 import OptionCard from "./OptionCard";
 
@@ -28,9 +29,12 @@ export default function SelectStep({
         <section key={category.id} aria-labelledby={`meat-cat-${category.id}`}>
           <h2
             id={`meat-cat-${category.id}`}
-            className="text-base font-semibold text-luxol-green"
+            className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-base font-semibold text-luxol-green"
           >
             {category.label} Options
+            <span className="text-xs font-medium text-neutral-500">
+              {formatNaira(category.pricePerKg)} per kg
+            </span>
           </h2>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {category.options.map((option) => (

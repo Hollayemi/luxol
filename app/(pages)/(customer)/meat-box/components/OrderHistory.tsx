@@ -54,11 +54,6 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-function amountLabel(order: MeatBoxOrder): string {
-  if (order.confirmedTotal == null) return "Pending weighing";
-  return formatNaira(order.confirmedTotal);
-}
-
 function OrderRow({
   order,
   open,
@@ -103,7 +98,7 @@ function OrderRow({
               <Row
                 key={item.optionId}
                 label={orderLineLabel(item)}
-                value={item.lineTotal != null ? formatNaira(item.lineTotal) : "Pending"}
+                value={formatNaira(item.lineTotal)}
               />
             ))}
           </Block>
@@ -117,7 +112,7 @@ function OrderRow({
           <Block title="Summary">
             <Row
               label={order.paidAt ? "Total Amount Paid" : "Total Amount"}
-              value={amountLabel(order)}
+              value={formatNaira(order.total)}
             />
             <Row label="Schedule Frequency" value={order.deliveryFrequency.label} />
             {order.deliveredAt && (

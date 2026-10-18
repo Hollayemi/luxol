@@ -4,7 +4,7 @@ import AdminIcon from "@/app/components/admin/layout/AdminIcon";
 import { formatNaira } from "@/app/utils/product";
 import type { AdminMeatBoxActiveStatus, AdminMeatBoxCategory, AdminMeatBoxOption } from "@/redux/types";
 import { CatalogueStatusToggle } from "./CatalogueStatusToggle";
-import { formatOptionPrice, formatOptionWeight, MEAT_BOX_UNIT_LABELS } from "./formatters";
+import { formatPerKg, formatWeight } from "./formatters";
 
 export type MeatBoxCategorySectionProps = {
   category: AdminMeatBoxCategory;
@@ -21,7 +21,7 @@ export type MeatBoxCategorySectionProps = {
   onOptionStatus: (option: AdminMeatBoxOption, status: AdminMeatBoxActiveStatus) => Promise<void>;
 };
 
-const COLUMNS = ["Meat Box", "Sold As", "Est. Weight / Unit", "Est. Price / Unit", "Max Qty", "Status", "Actions"];
+const COLUMNS = ["Meat Box", "Weight", "Price", "Max Qty", "Status", "Actions"];
 
 function Thumb({ src, size }: { src: string | null; size: "sm" | "md" }) {
   const box = size === "md" ? "size-12 rounded-xl" : "size-10 rounded-lg";
@@ -86,7 +86,12 @@ export function MeatBoxCategorySection({
         <div className="flex min-w-0 items-center gap-3">
           <Thumb src={category.image} size="md" />
           <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold text-neutral-900">{category.label}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="truncate text-base font-semibold text-neutral-900">{category.label}</h3>
+              <span className="rounded-md bg-[#e7f4e4] px-2 py-0.5 text-xs font-semibold text-luxol-green">
+                {formatPerKg(category.pricePerKg)}
+              </span>
+            </div>
             <p className="mt-0.5 text-xs text-neutral-500">
               {total} {total === 1 ? "meat box" : "meat boxes"} · Display order {category.displayOrder}
             </p>
@@ -145,7 +150,7 @@ export function MeatBoxCategorySection({
         </div>
       ) : (
         <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[920px] text-left">
+          <table className="w-full min-w-[760px] text-left">
             <thead>
               <tr className="border-b border-neutral-100 text-xs uppercase tracking-wide text-neutral-400">
                 {COLUMNS.map((col) => (
@@ -164,14 +169,13 @@ export function MeatBoxCategorySection({
                       <span className="text-sm font-medium text-neutral-900">{option.label}</span>
                     </div>
                   </td>
+                  <td className="py-3.5 pr-4 text-sm text-neutral-900">{formatWeight(option.weightKg)}</td>
                   <td className="py-3.5 pr-4 text-sm text-neutral-900">
-                    <p>{MEAT_BOX_UNIT_LABELS[option.unit]}</p>
-                    {option.unit === "KG" && option.pricePerKg != null && (
-                      <p className="mt-0.5 text-xs text-neutral-400">{formatNaira(option.pricePerKg)}/kg</p>
-                    )}
+                    <p className="font-medium">{formatNaira(option.price)}</p>
+                    <p className="mt-0.5 text-xs text-neutral-400">
+                      {formatWeight(option.weightKg)} x {formatPerKg(category.pricePerKg)}
+                    </p>
                   </td>
-                  <td className="py-3.5 pr-4 text-sm text-neutral-900">{formatOptionWeight(option)}</td>
-                  <td className="py-3.5 pr-4 text-sm text-neutral-900">{formatOptionPrice(option)}</td>
                   <td className="py-3.5 pr-4 text-sm text-neutral-900">{option.maxQuantity ?? "Default"}</td>
                   <td className="py-3.5 pr-4">
                     <CatalogueStatusToggle

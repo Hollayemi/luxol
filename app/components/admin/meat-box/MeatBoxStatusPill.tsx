@@ -2,8 +2,7 @@ import type { AdminMeatBoxPaymentStatus, AdminMeatBoxStatus } from "@/redux/type
 import { MEAT_BOX_PAYMENT_LABELS, MEAT_BOX_STATUS_LABELS } from "./formatters";
 
 const STATUS_STYLES: Record<AdminMeatBoxStatus, { pill: string; dot: string }> = {
-  PENDING_WEIGHING: { pill: "bg-neutral-100 text-neutral-600", dot: "bg-neutral-400" },
-  PRICE_CONFIRMED: { pill: "bg-[#efe9fb] text-violet-700", dot: "bg-violet-500" },
+  PENDING_PAYMENT: { pill: "bg-neutral-100 text-neutral-600", dot: "bg-neutral-400" },
   PROCESSING: { pill: "bg-[#fdf0da] text-amber-700", dot: "bg-amber-500" },
   OUT_FOR_DELIVERY: { pill: "bg-[#e6effb] text-blue-700", dot: "bg-blue-500" },
   COMPLETED: { pill: "bg-[#e7f4e4] text-luxol-green", dot: "bg-luxol-green" },

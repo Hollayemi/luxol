@@ -1,43 +1,36 @@
 /**
- * Meat Box (customer side): bulk meat ordered as whole / half / quarter animals
- * or by the kilo.
+ * Meat Box (customer side): bulk meat sold as fixed-weight boxes, e.g. a whole,
+ * half or quarter animal.
  *
- * Why it has an extra step compared with a normal order: animal portions are
- * prepared and weighed AFTER the customer orders, so their price isn't known
- * up front. The flow is:
+ * Pricing is known up front. Every category has a price per kg and every box
+ * (option) inside it has a weight, so staff never have to weigh and confirm a
+ * price after the order:
  *
- *   1. Customer picks meats and sets how they want it delivered.
- *   2. Order is submitted -> status "pending_weighing" (no price yet).
- *   3. Staff weigh the meat and confirm the price on the admin side
- *      -> status "price_confirmed", `confirmedTotal` is now set.
- *   4. Customer sees the price and places the order (pays)
- *      -> "processing" -> "out_for_delivery" -> "completed".
+ *   box price = category price per kg x box weight
+ *   e.g. Goat at ₦8,000/kg, "Full Goat" = 120kg  ->  ₦960,000
+ *
+ * The flow is a normal checkout:
+ *
+ *   1. Customer picks boxes and sets how they want it delivered.
+ *   2. They pay straight away: POST /meat-box/orders creates the order
+ *      ("pending_payment") and returns the payment link.
+ *   3. Once payment goes through -> "processing" -> "out_for_delivery"
+ *      -> "completed".
  */
 
 /* ------------------------------------------------------------------ */
 /* Catalogue                                                           */
 /* ------------------------------------------------------------------ */
 
-export type MeatBoxRange = { min: number; max: number };
-
-/**
- * "animal": sold as a whole / half / quarter animal. Priced after weighing.
- * "kg": sold by the kilo at a fixed price, so the quantity is a number of kg.
- */
-export type MeatBoxUnit = "animal" | "kg";
-
 export type MeatBoxOption = {
   id: string;
-  /** "Quarter Cow", "Cow Beef by Kg" ... */
+  /** "Full Goat", "Half Cow", "Quarter Cow" ... */
   label: string;
   image: string | null;
-  unit: MeatBoxUnit;
-  /** Naira per kg. Set for `unit: "kg"`, null while the price is unconfirmed. */
-  pricePerKg: number | null;
-  /** Estimated weight of ONE unit, e.g. a quarter cow is 45 - 55 kg. */
-  estimatedWeightKg: MeatBoxRange | null;
-  /** Estimated price of ONE unit, shown as a range on the review step. */
-  estimatedPrice: MeatBoxRange | null;
+  /** Weight of ONE box, in kg. */
+  weightKg: number;
+  /** Price of ONE box in naira: its category's price per kg x `weightKg`. */
+  price: number;
   /** Most the customer can order of this at once. null = backend default. */
   maxQuantity: number | null;
 };
@@ -46,6 +39,8 @@ export type MeatBoxCategory = {
   id: string;
   /** "Cow Beef", "Goat" ... the page adds " Options". */
   label: string;
+  /** Naira per kg for every box in this category. */
+  pricePerKg: number;
   options: MeatBoxOption[];
 };
 
@@ -72,7 +67,7 @@ export type MeatBoxOptions = {
 
 export type MeatBoxOrderItemInput = {
   optionId: string;
-  /** Number of animals/portions, or kilos when the option is `unit: "kg"`. */
+  /** How many of this box. */
   quantity: number;
 };
 
@@ -87,13 +82,24 @@ export type CreateMeatBoxOrderRequest = {
   butcheryGuidelines?: string;
 };
 
+/** Where to send the customer to pay; the backend returns them to the site afterwards. */
+export type MeatBoxPayment = {
+  authorizationUrl: string;
+  reference: string;
+};
+
+/** Response to POST /meat-box/orders: the new (unpaid) order and how to pay for it. */
+export type CreateMeatBoxOrderResponse = {
+  order: MeatBoxOrder;
+  payment: MeatBoxPayment;
+};
+
 /* ------------------------------------------------------------------ */
 /* Orders                                                              */
 /* ------------------------------------------------------------------ */
 
 export type MeatBoxOrderStatus =
-  | "pending_weighing"
-  | "price_confirmed"
+  | "pending_payment"
   | "processing"
   | "out_for_delivery"
   | "completed"
@@ -102,13 +108,15 @@ export type MeatBoxOrderStatus =
 export type MeatBoxOrderItem = {
   optionId: string;
   label: string;
-  unit: MeatBoxUnit;
   quantity: number;
-  pricePerKg: number | null;
-  /** Weighed by staff. null until then. */
-  finalWeightKg: number | null;
-  /** Confirmed price for this line. null until staff confirm it. */
-  lineTotal: number | null;
+  /** Weight of ONE box, as it was when the order was placed. */
+  weightKg: number;
+  /** Naira per kg, as it was when the order was placed. */
+  pricePerKg: number;
+  /** Price of ONE box (`pricePerKg` x `weightKg`). */
+  unitPrice: number;
+  /** `unitPrice` x `quantity`. */
+  lineTotal: number;
 };
 
 export type MeatBoxOrder = {
@@ -126,15 +134,11 @@ export type MeatBoxOrder = {
   phone: string;
   butcheryGuidelines: string | null;
 
-  /** What the customer saw when ordering. */
-  estimatedTotal: MeatBoxRange | null;
-  estimatedWeightKg: MeatBoxRange | null;
-
-  /** Set by staff once the meat is weighed. null = still pending. */
-  confirmedTotal: number | null;
-  finalWeightKg: number | null;
-  priceConfirmedAt: string | null;
-  /** Set once the customer has paid. */
+  /** Combined weight of every box on the order, in kg. */
+  totalWeightKg: number;
+  /** What the customer pays, in naira. */
+  total: number;
+  /** Set once the customer has paid; null while the order is "pending_payment". */
   paidAt: string | null;
 
   /** ISO, null once delivered / cancelled. */
@@ -147,14 +151,13 @@ export type MeatBoxOrdersList = {
   items: MeatBoxOrder[];
 };
 
-/** Response to POST /meat-box/orders/:id/place */
-export type PlaceMeatBoxOrderResponse = {
+/**
+ * Response to POST /meat-box/orders/:id/pay: a fresh payment link for an order
+ * that was created but not paid (the customer closed the payment page).
+ */
+export type PayMeatBoxOrderResponse = {
   orderId: string;
-  /** Send the customer here to pay, then the backend returns them to the site. */
-  payment: {
-    authorizationUrl: string;
-    reference: string;
-  };
+  payment: MeatBoxPayment;
 };
 
 export type CancelMeatBoxOrderRequest = {

@@ -14,7 +14,6 @@ import type { AdminMeatBoxStatus, AdminOrderPeriod, AdminOrderStat } from "@/red
 import {
   formatDeliveryFrequency,
   formatMeatBoxCode,
-  getAmountLabel,
   MEAT_BOX_PAYMENT_LABELS,
   MEAT_BOX_STATUS_LABELS,
 } from "./formatters";
@@ -92,7 +91,7 @@ export function MeatBoxOrdersTab() {
       "Customer",
       "Date & Time",
       "Amount (NGN)",
-      "Final Weight (kg)",
+      "Weight (kg)",
       "No of Items",
       "Frequency",
       "Delivery Date",
@@ -103,9 +102,8 @@ export function MeatBoxOrdersTab() {
       formatMeatBoxCode(o.code),
       o.customer.fullName,
       formatOrderDateTime(o.placedAt),
-      // Unconfirmed orders export their estimate, labelled as one.
-      getAmountLabel(o).text,
-      o.finalWeightKg ?? "",
+      o.total,
+      o.totalWeightKg,
       o.itemsCount,
       formatDeliveryFrequency(o.deliveryFrequency),
       o.deliveredAt ? formatOrderDateTime(o.deliveredAt) : "",
@@ -132,8 +130,7 @@ export function MeatBoxOrdersTab() {
 
       <StatCardRow>
         {statCard("Total Orders", s?.totalOrders)}
-        {statCard("Pending Weighing", s?.pendingWeighing)}
-        {statCard("Price Confirmed", s?.priceConfirmed)}
+        {statCard("Pending Payment", s?.pendingPayment)}
         {statCard("Processing", s?.processing)}
         {statCard("Out for Delivery", s?.outForDelivery)}
         {statCard("Completed", s?.completed)}

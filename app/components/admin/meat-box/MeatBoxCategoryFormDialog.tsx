@@ -10,6 +10,7 @@ import {
   useUpdateAdminMeatBoxCategoryMutation,
 } from "@/redux/slices/adminMeatBoxApi";
 import type { AdminMeatBoxActiveStatus, AdminMeatBoxCategory } from "@/redux/types";
+import { decimalPlaces, parseDecimal, sanitizeDecimal } from "./formatters";
 import { SingleImageField } from "./SingleImageField";
 
 const STATUS_OPTIONS = [
@@ -17,35 +18,58 @@ const STATUS_OPTIONS = [
   { label: "Inactive", value: "INACTIVE" },
 ];
 
+/** Kobo (Decimal(12,2)). */
+const MAX_PRICE_DECIMALS = 2;
+
+function checkPricePerKg(raw: string): string | undefined {
+  const n = parseDecimal(raw);
+  if (!Number.isFinite(n) || n <= 0) return "Enter the price per kg";
+  if (decimalPlaces(raw) > MAX_PRICE_DECIMALS) return `Up to ${MAX_PRICE_DECIMALS} decimal places`;
+  return undefined;
+}
+
 export type MeatBoxCategoryFormDialogProps = {
   /** Omit to create a new category. */
   category?: AdminMeatBoxCategory;
   close: () => void;
 };
 
-/** Create / edit a Meat Box category ("Cow Beef", "Goat" ...). */
+/**
+ * Create / edit a Meat Box category ("Cow Beef", "Goat" ...). The category owns
+ * the price per kg: every meat box inside it costs that price x its weight.
+ */
 export function MeatBoxCategoryFormDialog({ category, close }: MeatBoxCategoryFormDialogProps) {
   const [createCategory, { isLoading: creating }] = useCreateAdminMeatBoxCategoryMutation();
   const [updateCategory, { isLoading: updating }] = useUpdateAdminMeatBoxCategoryMutation();
   const loading = creating || updating;
 
   const [label, setLabel] = useState(category?.label ?? "");
+  const [pricePerKg, setPricePerKg] = useState(category ? String(category.pricePerKg) : "");
   const [image, setImage] = useState<File | null>(null);
   const [status, setStatus] = useState<AdminMeatBoxActiveStatus>(category?.status ?? "ACTIVE");
   const [displayOrder, setDisplayOrder] = useState(category ? String(category.displayOrder) : "");
   const [imageError, setImageError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   const order = displayOrder.trim() === "" ? 0 : Number(displayOrder);
   const orderValid = Number.isInteger(order) && order >= 0;
-  const valid = label.trim().length >= 2 && orderValid;
+  const labelValid = label.trim().length >= 2;
+  const priceError = checkPricePerKg(pricePerKg);
+  const valid = labelValid && orderValid && !priceError;
+
+  // Only reveal a field's problem once they've tried to save (the price starts empty).
+  const showPriceError = submitted ? priceError : undefined;
 
   async function handleSave() {
-    if (!valid || loading) return;
+    if (loading) return;
+    setSubmitted(true);
     setError("");
+    if (!valid) return;
 
     const body = {
       label: label.trim(),
+      pricePerKg: parseDecimal(pricePerKg),
       status,
       displayOrder: order,
       ...(image ? { image } : {}),
@@ -54,7 +78,12 @@ export function MeatBoxCategoryFormDialog({ category, close }: MeatBoxCategoryFo
     try {
       if (category) {
         await updateCategory({ id: category.id, ...body }).unwrap();
-        notify.success("Category updated", { message: `"${body.label}" was saved.` });
+        notify.success("Category updated", {
+          message:
+            body.pricePerKg !== category.pricePerKg
+              ? `"${body.label}" was saved and its meat boxes were re-priced.`
+              : `"${body.label}" was saved.`,
+        });
       } else {
         await createCategory(body).unwrap();
         notify.success("Category created", { message: `"${body.label}" was added to the Meat Box page.` });
@@ -71,7 +100,7 @@ export function MeatBoxCategoryFormDialog({ category, close }: MeatBoxCategoryFo
         title="Meat Box Categories"
         onClose={close}
         actions={
-          <ModalButton onClick={handleSave} disabled={!valid} loading={loading}>
+          <ModalButton onClick={handleSave} loading={loading}>
             {loading ? "Saving..." : "Save"}
           </ModalButton>
         }
@@ -84,8 +113,8 @@ export function MeatBoxCategoryFormDialog({ category, close }: MeatBoxCategoryFo
           </h3>
           <p className="mt-1 text-sm text-neutral-500">
             {category
-              ? "Update this category's details."
-              : "A category groups related meat boxes on the Meat Box page, like Cow Beef or Goat."}
+              ? "Update this category's details. Changing the price per kg re-prices every meat box in it."
+              : "A category groups related meat boxes on the Meat Box page, like Cow Beef or Goat, and sets their price per kg."}
           </p>
         </div>
 
@@ -97,6 +126,23 @@ export function MeatBoxCategoryFormDialog({ category, close }: MeatBoxCategoryFo
             placeholder="e.g. Cow Beef"
             required
           />
+
+          <div>
+            <TextField
+              label="Price per kg (₦)"
+              hint="Every meat box in this category costs this price x its weight."
+              value={pricePerKg}
+              onChange={(v) => setPricePerKg(sanitizeDecimal(v))}
+              placeholder="e.g. 8000"
+              required
+            />
+            {showPriceError && (
+              <p role="alert" className="mt-1.5 text-xs text-red-600">
+                {showPriceError}
+              </p>
+            )}
+          </div>
+
           <SingleImageField
             value={image}
             onChange={setImage}

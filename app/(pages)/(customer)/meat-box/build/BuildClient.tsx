@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useOpenAuth from "@/app/components/auth/useOpenAuth";
-import { resolveSelection, type MeatBoxSelection } from "@/app/utils/meat-box";
+import { CheckCircleIcon } from "@/app/components/ui/icons";
+import { boxTotal, resolveSelection, type MeatBoxSelection } from "@/app/utils/meat-box";
+import { formatNaira } from "@/app/utils/product";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/redux/config/errors";
 import {
@@ -11,11 +14,10 @@ import {
   useCreateMeatBoxOrderMutation,
   useGetMeatBoxOptionsQuery,
 } from "@/redux/slices/meatBoxApi";
-import type { MeatBoxOptions, MeatBoxOrder } from "@/redux/types";
+import type { MeatBoxOptions } from "@/redux/types";
 import { useCart } from "@/redux/hooks";
 
 import DeliveryStep, { GUIDELINES_MAX, type DeliveryValues } from "../components/DeliveryStep";
-import OrderPlaced from "../components/OrderPlaced";
 import ReviewStep from "../components/ReviewStep";
 import SelectStep from "../components/SelectStep";
 import SelectedItemsCard from "../components/SelectedItemsCard";
@@ -57,7 +59,8 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
 
   const topRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<Step>(1);
-  const [placed, setPlaced] = useState<MeatBoxOrder | null>(null);
+  // Set once the order exists and we're sending the customer to pay for it
+  const [paying, setPaying] = useState<{ orderId: string; total: number } | null>(null);
   const [submitError, setSubmitError] = useState("");
 
   const [selection, setSelection] = useState<MeatBoxSelection[]>([]);
@@ -77,7 +80,7 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
   // Bring the top of the form into view when moving between steps
   useEffect(() => {
     topRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
-  }, [step, placed]);
+  }, [step, paying]);
 
   function toggle(optionId: string) {
     setSelection((prev) =>
@@ -111,6 +114,7 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
     }
   }
 
+  /** The price is fixed, so placing the order means paying for it straight away. */
   async function submit() {
     if (submitting || items.length === 0 || !deliveryValid) return;
     if (sessionStatus !== "authenticated") {
@@ -128,7 +132,9 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
         addressId: delivery.addressId,
         butcheryGuidelines: delivery.guidelines.trim().slice(0, GUIDELINES_MAX) || undefined,
       }).unwrap();
-      setPlaced(res.data);
+
+      setPaying({ orderId: res.data.order.id, total: res.data.order.total });
+      window.location.assign(res.data.payment.authorizationUrl);
     } catch (err) {
       const message = getErrorMessage(err);
       setSubmitError(message);
@@ -138,18 +144,23 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
     }
   }
 
-  if (placed) {
+  if (paying) {
     return (
       <div ref={topRef} className="scroll-mt-24">
-        <OrderPlaced order={placed} />
+        <RedirectingToPayment orderId={paying.orderId} total={paying.total} />
       </div>
     );
   }
 
+  const total = boxTotal(items);
   const actionByStep = {
     1: { label: "Continue", disabled: items.length === 0, onAction: next },
     2: { label: "Continue", disabled: !deliveryValid || items.length === 0, onAction: next },
-    3: { label: "Place Order", disabled: !deliveryValid || items.length === 0, onAction: submit },
+    3: {
+      label: `Pay Now · ${formatNaira(total)}`,
+      disabled: !deliveryValid || items.length === 0,
+      onAction: submit,
+    },
   } as const;
   const action = actionByStep[step];
 
@@ -162,9 +173,9 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
           families, events, or deep freezing, and also add some additional assorted varieties
         </p>
         <p className="mt-6 rounded-xl bg-[#f8f1e6] px-5 py-4 text-left text-xs leading-relaxed text-neutral-700">
-          <span className="font-semibold text-luxol-orange">Please note:</span> Your final weight
-          and price for whole, half, quarter sizes may vary. Meat is prepared and weighed after
-          ordering, so we&apos;ll confirm the final weight and price before delivery.
+          <span className="font-semibold text-luxol-orange">How pricing works:</span> every meat box
+          has a set weight and each meat has a price per kg, so the price you see is the price you
+          pay. Choose what you want, then order and pay in one go.
         </p>
       </div>
 
@@ -223,6 +234,31 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
           onAction={action.onAction}
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Shown while the browser leaves for the payment page. The order already
+ * exists (unpaid), so if they come back without paying it's waiting in their
+ * Meat Box with a Pay Now button rather than being lost.
+ */
+function RedirectingToPayment({ orderId, total }: { orderId: string; total: number }) {
+  return (
+    <div className="flex flex-col items-center py-16 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-luxol-green/10 text-luxol-green">
+        <CheckCircleIcon className="size-8" />
+      </span>
+      <h2 className="mt-6 text-xl font-bold text-neutral-900">Taking you to payment…</h2>
+      <p className="mt-2 max-w-sm text-sm text-neutral-500">
+        Your Meat Box is ready. Pay {formatNaira(total)} to confirm your order.
+      </p>
+      <Link
+        href={`/meat-box/manage?order=${orderId}`}
+        className="mt-6 text-sm font-semibold text-luxol-green hover:underline"
+      >
+        Not redirected? View your Meat Box
+      </Link>
     </div>
   );
 }

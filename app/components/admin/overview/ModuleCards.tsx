@@ -137,7 +137,7 @@ export default function ModuleCards({ modules }: { modules: AdminOverviewModules
         metrics={[
           { value: meatBox.activeOrders, label: "Active Orders" },
           { value: meatBox.preparing, label: "Preparing" },
-          { value: meatBox.awaitingWeight, label: "Awaiting weight" },
+          { value: meatBox.awaitingPayment, label: "Awaiting payment" },
         ]}
         footerIcon={<AdminIcon name="package" className="size-6" />}
         caption="Next delivery window"
