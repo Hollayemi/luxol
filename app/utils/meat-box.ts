@@ -44,7 +44,7 @@ export function formatQuantity(quantity: number): string {
 
 /** 120 -> "120kg", 45.125 -> "45.125kg". */
 export function formatKg(kg: number): string {
-  return `${Number(kg.toFixed(3))}kg`;
+  return `${Number(kg?.toFixed(3))}kg`;
 }
 
 /** Floating point safe: 0.1 * 3 -> 0.3, not 0.30000000000000004. */

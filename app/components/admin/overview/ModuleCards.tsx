@@ -84,7 +84,7 @@ function ModuleCard({
         </span>
         <div className="min-w-0">
           <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
-          <p className="truncate text-sm text-neutral-500">{subtitle}</p>
+          <p className="truncate text-xs text-neutral-500">{subtitle}</p>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ function ModuleCard({
             <dd className="text-xl font-semibold text-neutral-900">
               <AnimatedNumber value={m.value} format={formatCount} />
             </dd>
-            <dt className="mt-1 text-sm text-neutral-500">{m.label}</dt>
+            <dt className="mt-1 text-xs text-neutral-500">{m.label}</dt>
           </div>
         ))}
       </dl>
@@ -107,7 +107,7 @@ function ModuleCard({
           <span className={t.icon}>{footerIcon}</span>
           <span className="min-w-0 flex-1">
             <span className="block text-xs text-neutral-500">{caption}</span>
-            <span className="block truncate text-sm font-semibold text-neutral-900">
+            <span className="block truncate text-xs font-semibold text-neutral-900">
               {headlineValue !== undefined ? (
                 <AnimatedNumber value={headlineValue} format={format} />
               ) : (
@@ -125,10 +125,25 @@ function ModuleCard({
 }
 
 export default function ModuleCards({ modules }: { modules: AdminOverviewModules }) {
-  const { meatBox, freezerPlanner, membership, inventory } = modules;
+  const { meatBox, order, membership, inventory } = modules;
 
   return (
-    <motion.div variants={stagger} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <motion.div variants={stagger} className="grid gap-4 xs:grid-cols-2 xl:grid-cols-4">
+       <ModuleCard
+        tone="teal"
+        icon="orders"
+        title="Orders"
+        subtitle="Complete freezer shopping plans"
+        metrics={[
+          { value: order.activeOrders, label: "Active Orders" },
+          { value: order.processing, label: "Processing" },
+          { value: order.completed, label: "Completed" },
+        ]}
+        footerIcon={<AdminIcon name="orders" className="size-6" />}
+        caption="Next delivery window"
+        headline={"Nothing scheduled"}
+        href="/admin/orders"
+      />
       <ModuleCard
         tone="red"
         icon="meatBox"
@@ -142,22 +157,7 @@ export default function ModuleCards({ modules }: { modules: AdminOverviewModules
         footerIcon={<AdminIcon name="package" className="size-6" />}
         caption="Next delivery window"
         headline={meatBox.nextDeliveryWindow ?? "Nothing scheduled"}
-        href="/admin/orders"
-      />
-      <ModuleCard
-        tone="teal"
-        icon="freezerPlanner"
-        title="Freezer Planner"
-        subtitle="Complete freezer shopping plans"
-        metrics={[
-          { value: freezerPlanner.activeOrders, label: "Active Orders" },
-          { value: freezerPlanner.processing, label: "Processing" },
-          { value: freezerPlanner.recurring, label: "Recurring" },
-        ]}
-        footerIcon={<AdminIcon name="freezerPlanner" className="size-6" />}
-        caption="Next delivery window"
-        headline={freezerPlanner.nextDeliveryWindow ?? "Nothing scheduled"}
-        href="/admin/orders"
+        href="/admin/meat-box"
       />
       <ModuleCard
         tone="purple"

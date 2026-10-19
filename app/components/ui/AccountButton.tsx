@@ -42,7 +42,7 @@ export default function AccountButton({
       <details className="group relative">
         <summary
           className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-white transition hover:text-luxol-orange [&::-webkit-details-marker]:hidden"
-          aria-label={`Account, ${name}`}
+          aria-label={`Account, ${firstName}`}
         >
           <UserIcon className="h-5 w-5" />
         </summary>
@@ -65,6 +65,20 @@ export default function AccountButton({
             className="block rounded-md px-3 py-2 text-sm hover:bg-neutral-50"
           >
             My Orders
+          </Link>
+          <Link
+            href="/subscription/membership"
+            onClick={onAction}
+            className="block rounded-md px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            Manage Membership
+          </Link>
+          <Link
+            href="/meat-box/manage"
+            onClick={onAction}
+            className="block rounded-md px-3 py-2 text-sm hover:bg-neutral-50"
+          >
+            Manage MeatBox
           </Link>
           <button
             type="button"

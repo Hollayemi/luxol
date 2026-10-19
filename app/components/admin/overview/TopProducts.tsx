@@ -31,13 +31,13 @@ export default function TopProducts() {
   const phrase = PHRASE[period];
 
   return (
-    <section aria-labelledby="top-products-heading" className="rounded-3xl bg-white p-6 sm:p-8">
+    <section aria-labelledby="top-products-heading" className="rounded-3xl bg-white p-6 xs:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 id="top-products-heading" className="text-lg font-semibold text-neutral-900">
             Top Selling Products
           </h2>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-xs text-neutral-500">
             Your best performing products {phrase ?? "of all time"}
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function TopProducts() {
             aria-label="Top products period"
             value={period}
             onChange={(e) => setPeriod(e.target.value as AdminOrderPeriod)}
-            className="h-11 appearance-none rounded-xl border border-neutral-200 bg-white pl-4 pr-10 text-sm font-medium text-neutral-900 focus:outline-none focus:ring-2 focus:ring-luxol-green/30"
+            className="h-11 appearance-none rounded-xl border border-neutral-200 bg-white pl-4 pr-10 text-xs font-medium text-neutral-900 focus:outline-none focus:ring-2 focus:ring-luxol-green/30"
           >
             {PERIOD_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -61,7 +61,7 @@ export default function TopProducts() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-6 border-b border-neutral-200 pb-3 text-sm font-medium text-neutral-700">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-6 border-b border-neutral-200 pb-3 text-xs font-medium text-neutral-700">
         <span>Product Details</span>
         <span className="w-24">Total Order</span>
         <span className="w-16 text-right">Price</span>
@@ -95,11 +95,11 @@ export default function TopProducts() {
             exit={{ opacity: 0 }}
             className="py-10 text-center"
           >
-            <p className="text-sm text-neutral-600">{getErrorMessage(error)}</p>
+            <p className="text-xs text-neutral-600">{getErrorMessage(error)}</p>
             <button
               type="button"
               onClick={() => void refetch()}
-              className="mt-4 h-10 rounded-lg border border-neutral-300 px-4 text-sm font-medium hover:bg-neutral-50"
+              className="mt-4 h-10 rounded-lg border border-neutral-300 px-4 text-xs font-medium hover:bg-neutral-50"
             >
               Try again
             </button>
@@ -110,7 +110,7 @@ export default function TopProducts() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="py-10 text-center text-sm text-neutral-500"
+            className="py-10 text-center text-xs text-neutral-500"
           >
             No sales {phrase ?? "yet"}.
           </motion.p>
@@ -139,19 +139,19 @@ export default function TopProducts() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-neutral-900">{p.name}</p>
+                    <p className="truncate text-xs font-semibold text-neutral-900">{p.name}</p>
                     <p className="text-xs text-neutral-500">#{p.sku}</p>
                   </div>
                 </div>
                 <div className="w-24">
-                  <p className="text-sm font-semibold text-neutral-900">{formatCount(p.totalOrders)}</p>
+                  <p className="text-xs font-semibold text-neutral-900">{formatCount(p.totalOrders)}</p>
                   {phrase && (
                     <p className="text-xs text-neutral-500">
                       {formatCount(p.periodOrders)} {phrase}
                     </p>
                   )}
                 </div>
-                <p className="w-16 text-right text-sm font-semibold text-neutral-900">{formatNaira(p.price)}</p>
+                <p className="w-16 text-right text-xs font-semibold text-neutral-900">{formatNaira(p.price)}</p>
               </motion.li>
             ))}
           </motion.ul>

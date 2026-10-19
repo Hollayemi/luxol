@@ -25,6 +25,7 @@ import {
 } from "@/redux/slices/adminAuthApi";
 import AdminAuthShell from "./AdminAuthShell";
 import { LockedField } from "./AdminAuthFields";
+import { User } from "@/redux/types";
 
 const PILL = "Sign up to Luxol";
 
@@ -48,7 +49,7 @@ export default function AcceptInviteForm({ token }: { token: string }) {
         title="Welcome to the Team!"
         description={`You've been invited by the admin to join as ${withArticle(formatRole(invite.role))}, so kindly provide your information to create an account.`}
       >
-        <SetupForm token={token} email={invite.email} />
+        <SetupForm token={token} email={invite.email} user={invite.user} hasAccount={invite.hasAccount} />
       </AdminAuthShell>
     );
   }
@@ -113,7 +114,8 @@ export default function AcceptInviteForm({ token }: { token: string }) {
   );
 }
 
-function SetupForm({ token, email }: { token: string; email: string }) {
+function SetupForm({ token, email, user, hasAccount }: { token: string; email: string; user: User, hasAccount: boolean }) {
+
   const router = useRouter();
   const [acceptInvite] = useAcceptInviteMutation();
 
@@ -125,7 +127,7 @@ function SetupForm({ token, email }: { token: string; email: string }) {
 
   const mismatch = confirm.length > 0 && confirm !== password;
   const valid =
-    isValidName(name) && isValidPassword(password) && confirm === password;
+    hasAccount ? true : isValidName(name) && isValidPassword(password) && confirm === password;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -181,47 +183,48 @@ function SetupForm({ token, email }: { token: string; email: string }) {
         name="name"
         autoComplete="name"
         autoFocus
-        value={name}
+        disabled={hasAccount}
+        value={user.name}
         onChange={(e) => {
           setName(e.target.value);
           setError("");
         }}
         placeholder="Enter your full name"
       />
-
-      <PasswordField
-        label="Password"
-        name="password"
-        autoComplete="new-password"
-        value={password}
-        onChange={(e) => {
-          setPassword(e.target.value);
-          setError("");
-        }}
-        placeholder="Enter password"
-        hint={`At least ${MIN_PASSWORD_LENGTH} characters`}
-      />
-
-      <div>
+      {!hasAccount && <>
         <PasswordField
-          label="Confirm Password"
-          name="confirmPassword"
+          label="Password"
+          name="password"
           autoComplete="new-password"
-          value={confirm}
+          value={password}
           onChange={(e) => {
-            setConfirm(e.target.value);
+            setPassword(e.target.value);
             setError("");
           }}
-          placeholder="Re-enter password"
-          aria-invalid={mismatch}
+          placeholder="Enter password"
+          hint={`At least ${MIN_PASSWORD_LENGTH} characters`}
         />
-        {mismatch && (
-          <p role="alert" className="mt-2 text-xs text-red-600">
-            Passwords don&rsquo;t match.
-          </p>
-        )}
-      </div>
 
+        <div>
+          <PasswordField
+            label="Confirm Password"
+            name="confirmPassword"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => {
+              setConfirm(e.target.value);
+              setError("");
+            }}
+            placeholder="Re-enter password"
+            aria-invalid={mismatch}
+          />
+          {mismatch && (
+            <p role="alert" className="mt-2 text-xs text-red-600">
+              Passwords don&rsquo;t match.
+            </p>
+          )}
+        </div>
+      </>}
       {error && <ErrorText>{error}</ErrorText>}
 
       <div className="pt-3">

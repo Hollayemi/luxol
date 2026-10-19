@@ -23,7 +23,7 @@ export default function FreezerPlannerPage() {
           "Set reminders when it's time to restock",
         ],
         
-        cta: { label: "Plan Your Freezer", href: "/freezer-planner/setup" },
+        cta: { label: "Plan Your Freezer (Coming Soon)", href: "#" },
         image: {
           src: "/images/full-basket.png",
           alt: "A shopping basket full of groceries next to a barcode scanner",

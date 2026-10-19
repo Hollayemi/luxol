@@ -18,8 +18,8 @@ export const adminAuthApi = baseApi.injectEndpoints({
 
     /** Creates the staff account from the invitation. */
     acceptInvite: builder.mutation<ApiSuccess<User>, AcceptInviteRequest>({
-      query: (body) => ({
-        url: API_ROUTES.admin.acceptInvite,
+      query: ({token, ...body}) => ({
+        url: `${API_ROUTES.admin.acceptInvite}?token=${token}`,
         method: "POST",
         data: body,
       }),

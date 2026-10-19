@@ -61,8 +61,7 @@ export type AdminOverviewMeatBox = {
 export type AdminOverviewFreezerPlanner = {
   activeOrders: number;
   processing: number;
-  recurring: number;
-  nextDeliveryWindow: string | null;
+  completed: number;
 };
 
 export type AdminOverviewMembership = {
@@ -84,7 +83,7 @@ export type AdminOverviewInventory = {
 
 export type AdminOverviewModules = {
   meatBox: AdminOverviewMeatBox;
-  freezerPlanner: AdminOverviewFreezerPlanner;
+  order: AdminOverviewFreezerPlanner;
   membership: AdminOverviewMembership;
   inventory: AdminOverviewInventory;
 };
