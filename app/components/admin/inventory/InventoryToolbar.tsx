@@ -29,7 +29,7 @@ export function InventoryToolbar({
         />
       </div>
 
-      <button
+      {/* <button
         type="button"
         disabled
         title="Coming soon"
@@ -37,7 +37,7 @@ export function InventoryToolbar({
       >
         <AdminIcon name="filter" className="size-4" />
         Filters
-      </button>
+      </button> */}
 
       <button
         type="button"

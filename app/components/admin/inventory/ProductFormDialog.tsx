@@ -142,14 +142,14 @@ export function ProductFormDialog({
 
         <div className="grid gap-x-10 gap-y-5 lg:grid-cols-2">
           <div className="space-y-5">
-            <SelectField
+            {/* <SelectField
               label="Variant Option"
               hint="Choose if it will have variants or it will be a parent product"
               value={variantOption}
               onChange={(v) => setVariantOption(v as VariantOption)}
               options={VARIANT_OPTIONS}
               placeholder="Select the variant option"
-            />
+            /> */}
             <TextField
               label="Product Name"
               value={name}
@@ -167,6 +167,14 @@ export function ProductFormDialog({
               options={categories.map((c) => ({ label: c.name, value: c.id }))}
               placeholder={categoriesLoading ? "Loading categories..." : "Select the category"}
               disabled={categoriesLoading}
+            />
+            <SelectField
+              label="Product Status"
+              hint="Active products are visible and available for purchase."
+              value={status}
+              onChange={(v) => setStatus(v as ProductStatus)}
+              options={STATUS_OPTIONS}
+              placeholder="Select the product status"
             />
             <TextareaField
               label="Product Description"
@@ -231,14 +239,6 @@ export function ProductFormDialog({
                 required
               />
             
-            <SelectField
-              label="Product Status"
-              hint="Active products are visible and available for purchase."
-              value={status}
-              onChange={(v) => setStatus(v as ProductStatus)}
-              options={STATUS_OPTIONS}
-              placeholder="Select the product status"
-            />
             <TagsField
               label="Product Tags"
               hint="Add keywords to improve search filtering and automated store rules."

@@ -9,7 +9,16 @@ export const metadata: Metadata = {
 export default function ShopPage() {
   return (
     <Suspense fallback={null}>
-      <ShopClient />
+      <ShopClient
+        config={{
+          title: "Shop",
+          page: "shop",
+          showCategory: true,
+          showSort: true,
+          showView: true,
+          showPagination: true
+        }}
+      />
     </Suspense>
   );
 }

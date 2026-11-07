@@ -23,7 +23,7 @@ export const adminNav = {
     { label: "Inventory", href: "/admin/inventory", icon: "inventory" },
     { label: "Promotions", href: "/admin/promotions", icon: "promotions" },
     { label: "Delivery & Schedule", href: "/admin/delivery", icon: "delivery" },
-    { label: "Analytics", href: "/admin/analytics", icon: "analytics" },
+    // { label: "Analytics", href: "/admin/analytics", icon: "analytics" },
     { label: "Membership", href: "/admin/membership", icon: "membership" },
   ],
   features: [

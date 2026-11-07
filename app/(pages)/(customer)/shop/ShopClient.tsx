@@ -10,6 +10,7 @@ import {
   useGetCategoriesQuery,
   useListStorefrontProductsQuery,
 } from "@/redux/slices/catalogApi";
+import { SearchTags } from "@/redux/types/catalog";
 
 const PAGE_SIZE = 24;
 
@@ -32,7 +33,7 @@ type State = {
   page: number;
 };
 
-function buildHref(state: State, patch: Partial<State> = {}) {
+function buildHref(state: State, patch: Partial<State> = {}, config: { page: string }) {
   const next = { ...state, ...patch };
   const params = new URLSearchParams();
 
@@ -43,7 +44,7 @@ function buildHref(state: State, patch: Partial<State> = {}) {
   if (next.page > 1) params.set("page", String(next.page));
 
   const qs = params.toString();
-  return qs ? `/shop?${qs}` : "/shop";
+  return qs ? `/${config.page}?${qs}` : `/${config.page}`;
 }
 
 function pageItems(current: number, total: number): (number | "…")[] {
@@ -63,7 +64,17 @@ function pageItems(current: number, total: number): (number | "…")[] {
 
 const container = "mx-auto w-full max-w-[1240px] px-2 sm:px-6";
 
-export default function ShopClient() {
+type config = {
+  title: string;
+  page: string;
+  showCategory: boolean;
+  showSort: boolean;
+  showView: boolean;
+  tag?: SearchTags;
+  showPagination: boolean;
+};
+
+export default function ShopClient({ config }: { config: config }) {
   const searchParams = useSearchParams();
 
   const category = searchParams.get("category") ?? "all";
@@ -79,6 +90,7 @@ export default function ShopClient() {
   const { data: categoriesData } = useGetCategoriesQuery();
   const { data, isLoading, isFetching, isError } = useListStorefrontProductsQuery({
     category: category === "all" ? undefined : category,
+    tag: config.tag,
     search: q || undefined,
     sort,
     page: requestedPage,
@@ -100,7 +112,7 @@ export default function ShopClient() {
       <section className="bg-[#f2f2f0] py-5 md:py-12 text-center sm:py-16">
         <div className={container}>
           <h1 className="text-3xl font-bold text-neutral-900 sm:text-4xl">
-            Shop
+            {config.title}
           </h1>
 
           <nav aria-label="Breadcrumb" className="mt-3 text-sm">
@@ -118,7 +130,7 @@ export default function ShopClient() {
                   </Link>
                 ) : (
                   <span aria-current="page" className="text-luxol-green">
-                    Shop
+                    {config.page}
                   </span>
                 )}
               </li>
@@ -137,7 +149,11 @@ export default function ShopClient() {
 
       <div className={`${container} py-3 sm:py-16`}>
         {/* Category filter */}
-        <Categories fromShop category={category} />
+        {config.showCategory ? (
+          <div className="mb-6 sm:mb-10">
+            <Categories fromShop category={category} />
+          </div>
+        ) : null}
 
         {/* Toolbar: sort + view */}
         <div className="mt-12 flex items-center justify-between border-y border-neutral-200 py-4 sm:mt-16">
@@ -154,7 +170,7 @@ export default function ShopClient() {
                 {SORTS.map((s) => (
                   <li key={s.value}>
                     <Link
-                      href={buildHref(state, { sort: s.value, page: 1 })}
+                      href={buildHref(state, { sort: s.value, page: 1 }, config)}
                       aria-current={s.value === sort ? "true" : undefined}
                       className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${s.value === sort
                         ? "font-medium text-luxol-green"
@@ -173,7 +189,7 @@ export default function ShopClient() {
             <span className="text-sm font-medium text-neutral-900">View as</span>
 
             <Link
-              href={buildHref(state, { view: "list" })}
+              href={buildHref(state, { view: "list" }, config)}
               aria-label="Larger cards"
               aria-current={view === "list" ? "true" : undefined}
               className={`rounded p-1 transition-colors ${view === "list"
@@ -189,7 +205,7 @@ export default function ShopClient() {
             </Link>
 
             <Link
-              href={buildHref(state, { view: "grid" })}
+              href={buildHref(state, { view: "grid" }, config)}
               aria-label="Compact grid"
               aria-current={view === "grid" ? "true" : undefined}
               className={`rounded p-1 transition-colors ${view === "grid"
@@ -256,7 +272,7 @@ export default function ShopClient() {
               Try a different category or search term.
             </p>
             <Link
-              href="/shop"
+              href={`/${config.page}`}
               className="mt-6 inline-flex h-11 items-center rounded-lg bg-luxol-green px-6 text-sm font-medium text-white transition hover:brightness-110"
             >
               Clear filters
@@ -272,7 +288,7 @@ export default function ShopClient() {
           >
             {page > 1 ? (
               <Link
-                href={buildHref(state, { page: page - 1 })}
+                href={buildHref(state, { page: page - 1 }, config)}
                 rel="prev"
                 className="inline-flex items-center gap-2 text-neutral-900 hover:text-luxol-green"
               >
@@ -298,7 +314,7 @@ export default function ShopClient() {
                 ) : (
                   <li key={entry}>
                     <Link
-                      href={buildHref(state, { page: entry })}
+                      href={buildHref(state, { page: entry }, config  )}
                       aria-label={`Page ${entry}`}
                       aria-current={entry === page ? "page" : undefined}
                       className={
@@ -314,24 +330,26 @@ export default function ShopClient() {
               )}
             </ul>
 
-            {page < totalPages ? (
-              <Link
-                href={buildHref(state, { page: page + 1 })}
-                rel="next"
-                className="inline-flex items-center gap-2 font-medium text-neutral-900 hover:text-luxol-green"
-              >
-                Next
-                <ChevronDownIcon className="size-4 -rotate-90" />
-              </Link>
-            ) : (
-              <span
-                aria-disabled="true"
-                className="inline-flex items-center gap-2 font-medium text-neutral-400"
-              >
-                Next
-                <ChevronDownIcon className="size-4 -rotate-90" />
-              </span>
-            )}
+            {config.showPagination ? (
+              page < totalPages ? (
+                <Link
+                  href={buildHref(state, { page: page + 1 }, config)}
+                  rel="next"
+                  className="inline-flex items-center gap-2 font-medium text-neutral-900 hover:text-luxol-green"
+                >
+                  Next
+                  <ChevronDownIcon className="size-4 -rotate-90" />
+                </Link>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="inline-flex items-center gap-2 font-medium text-neutral-400"
+                >
+                  Next
+                  <ChevronDownIcon className="size-4 -rotate-90" />
+                </span>
+              )
+            ) : null}
           </nav>
         )}
       </div>

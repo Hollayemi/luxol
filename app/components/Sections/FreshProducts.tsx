@@ -5,15 +5,15 @@ import { useListStorefrontProductsQuery } from "@/redux/slices/catalogApi";
 
 export default function FreshProducts() {
   const { data, isLoading } = useListStorefrontProductsQuery({
-    tag: "fresh-products",
+    tag: "popular",
     perPage: 6,
   });
 
   return (
     <ProductSection
       id="fresh-products"
-      title="Fresh Products"
-      viewAllHref="/shop?category=vegetables-produce"
+      title="Popular Products"
+      viewAllHref="/popular"
       viewAllLabel="View all products →"
       products={data?.data.items ?? []}
       isLoading={isLoading}

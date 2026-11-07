@@ -172,6 +172,17 @@ function Builder({ options, onRefresh }: { options: MeatBoxOptions; onRefresh: (
           Order whole, half, or quarter animals prepared by our expert butchers. Ideal for large
           families, events, or deep freezing, and also add some additional assorted varieties
         </p>
+
+        {/* Manage Meat Box CTA */}
+        <div className="mt-5 flex justify-center">
+          <Link
+            href="/meat-box/manage"
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-luxol-green px-4 text-sm font-semibold text-luxol-green transition hover:bg-luxol-green hover:text-white"
+          >
+            Manage Meat Box
+          </Link>
+        </div>
+
         <p className="mt-6 rounded-xl bg-[#f8f1e6] px-5 py-4 text-left text-xs leading-relaxed text-neutral-700">
           <span className="font-semibold text-luxol-orange">How pricing works:</span> every meat box
           has a set weight and each meat has a price per kg, so the price you see is the price you

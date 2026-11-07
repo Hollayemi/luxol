@@ -43,8 +43,8 @@ export function getStatusGroup(
 
 export const ORDER_TABS: { value: AdminOrderType; label: string }[] = [
   { value: "SHOP", label: "Shop Orders" },
-  { value: "MEAT_BOX", label: "Meat Box Orders" },
-  { value: "FREEZER_PLANNER", label: "Freezer Planner Orders" },
+  // { value: "MEAT_BOX", label: "Meat Box Orders" },
+  // { value: "FREEZER_PLANNER", label: "Freezer Planner Orders" },
 ];
 
 export const PERIOD_OPTIONS: { value: AdminOrderPeriod; label: string }[] = [

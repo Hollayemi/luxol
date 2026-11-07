@@ -43,7 +43,7 @@ export function AdminToolbar({
 
       {extra}
 
-      <button
+      {/* <button
         type="button"
         disabled
         title="Coming soon"
@@ -51,7 +51,7 @@ export function AdminToolbar({
       >
         <AdminIcon name="filter" className="size-4" />
         Filters
-      </button>
+      </button> */}
 
       <button
         type="button"

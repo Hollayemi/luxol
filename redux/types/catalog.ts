@@ -65,13 +65,14 @@ export type StorefrontProduct = {
   reorderLevel: number;
   status: ProductStatus;
   isFeatured: boolean;
-  tags: string[];
+  tags?: string[];
   displayOrder: number;
   unitsSold: number;
   createdAt: string;
   updatedAt: string;
 };
 
+export type SearchTags = 'deal-of-the-day' | 'new-arrival' | 'popular'
 /** Query params for the shop and search pages: filters, sort and pagination. */
 export type ListStorefrontProductsParams = {
   /** Matches product name/SKU */
@@ -79,7 +80,7 @@ export type ListStorefrontProductsParams = {
   /** Category slug(s); omit or "all" for every category */
   category?: string | string[];
   /** Only products carrying this tag, for home-page sections */
-  tag?: string;
+  tag?: SearchTags;
   minPrice?: number;
   maxPrice?: number;
   /** Product type filter on the search page, e.g. "fresh" | "frozen" | "processed" */

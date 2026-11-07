@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { fadeUp, stagger, viewportOnce } from "@/app/components/ui/motion";
 
@@ -28,6 +29,18 @@ export default function Hero() {
           Get quality meat and protein delivered to your door every week, based on a
           plan that fits your household or business.
         </motion.p>
+
+        <motion.div
+          variants={fadeUp}
+          className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+        >
+          <Link
+            href="/subscription/membership"
+            className="inline-flex w-full items-center justify-center rounded-full bg-luxol-orange px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-luxol-orange/90 sm:w-auto"
+          >
+            Manage Subscription
+          </Link>
+        </motion.div>
       </motion.div>
     </section>
   );

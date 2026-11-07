@@ -5,7 +5,6 @@ import { useListStorefrontProductsQuery } from "@/redux/slices/catalogApi";
 
 export default function ShopMore() {
   const { data, isLoading } = useListStorefrontProductsQuery({
-    tag: "shop-more",
     perPage: 12,
   });
 
