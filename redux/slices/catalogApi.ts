@@ -53,7 +53,7 @@ export const catalogApi = baseApi.injectEndpoints({
       }),
       providesTags: (result) =>
         result
-          ? result.data.items.map((p) => ({ type: "Product" as const, id: p.id }))
+          ? result.data.items?.map((p) => ({ type: "Product" as const, id: p.id }))
           : [],
     }),
   }),

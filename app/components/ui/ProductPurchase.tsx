@@ -9,6 +9,7 @@ import {
 } from "./icons";
 import { toCartAddDetail } from "@/app/utils/product";
 import { useIsInCart } from "@/redux/hooks";
+import { useWishlistToggle } from "./useWishlistToggle";
 import type { ProductVariant } from "@/redux/types/inventory";
 import type { StorefrontProduct } from "@/redux/types";
 
@@ -55,7 +56,9 @@ export default function ProductPurchase({
   // Cart" until the item is actually removed, and switches back if the
   // person picks a different variant that isn't in the cart yet.
   const added = useIsInCart(product.id, variant?.label);
-  const [saved, setSaved] = useState(false);
+  // "Save For Later" is backed by the wishlist API: it shows as saved for as
+  // long as the product really is on the signed-in customer's wishlist.
+  const wishlist = useWishlistToggle(product.id);
   const [notice, setNotice] = useState("");
 
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -100,14 +103,12 @@ export default function ProductPurchase({
     );
   }
 
-  function handleSave() {
-    const next = !saved;
-    setSaved(next);
-    // Your wishlist can listen for this: window.addEventListener("wishlist:toggle", ...)
-    window.dispatchEvent(
-      new CustomEvent("wishlist:toggle", { detail: { product, saved: next } }),
-    );
-    flash(next ? "Saved for later" : "Removed from saved items");
+  async function handleSave() {
+    const result = await wishlist.toggle();
+    if (result === "saved") flash("Saved for later");
+    else if (result === "removed") flash("Removed from saved items");
+    else if (result === "signin") flash("Sign in to save items for later");
+    else flash("Couldn't update your saved items. Please try again.");
   }
 
   async function handleShare(kind: ShareKind) {
@@ -124,9 +125,9 @@ export default function ProductPurchase({
     }
 
     if (kind === "mail") {
-      window.location.href = `mailto:?subject=${encodeURIComponent(
+      window.location.assign(`mailto:?subject=${encodeURIComponent(
         product.name,
-      )}&body=${encodeURIComponent(url)}`;
+      )}&body=${encodeURIComponent(url)}`);
       return;
     }
 
@@ -216,10 +217,11 @@ export default function ProductPurchase({
           <button
             type="button"
             onClick={handleSave}
-            aria-pressed={saved}
-            className="h-14 rounded-lg bg-luxol-orange px-9 text-sm font-medium text-black transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-orange"
+            disabled={wishlist.pending}
+            aria-pressed={wishlist.saved}
+            className="h-14 rounded-lg bg-luxol-orange px-9 text-sm font-medium text-black transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-luxol-orange disabled:cursor-wait disabled:opacity-70"
           >
-            {saved ? "Saved" : "Save For Later"}
+            {wishlist.saved ? "Saved" : "Save For Later"}
           </button>
         </div>
 
